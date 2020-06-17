@@ -1,0 +1,46 @@
+VENDOR APP:
+
+    Bottom Navigation
+        1.Home
+            Wishes
+            Puzzles/ Questions
+            Posts
+
+        2.Post
+            Top Tabs
+                1. Posts
+                2. Offers
+                3. Services
+                4. Products 
+                5. Ads
+
+        3.Customer
+            Top Tabs
+                1. Reviews
+                2. Viewers
+
+        4.Profile
+            Basic details of the profile(Business profile)
+            Background image and a logo
+            Edit Profile Button
+            Tabs (All related to the business)
+                1.Overview
+                    Extra details about business
+                2.Products
+                    Products would be name and category along with image
+                3.Ads
+                    Ads for some content
+
+        5.More
+            BottomSheet (this will pop up from bottom)
+            Privacy Policy
+            Help
+            TNC
+            Share App
+            Logout
+            
+Offers
+Services
+Products
+Ads
+Posts

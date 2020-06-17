@@ -1,0 +1,226 @@
+CREATE DATABASE amigho;
+
+CREATE TABLE user(
+    userId INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(50) NOT NULL,
+    dob DATE NOT NULL,
+    doa DATE DEFAULT NULL,
+    address VARCHAR(200) NOT NULL,
+    city VARCHAR(50) NOT NULL,
+    phone CHAR(11) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    profileImage VARCHAR(255) DEFAULT NULL,
+    referCode CHAR(10) NOT NULL,
+    jwtToken TEXT NOT NULL,
+    approve BOOL DEFAULT FALSE,
+    createdOn TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
+
+CREATE TABLE category(
+    categoryId INT PRIMARY KEY AUTO_INCREMENT,
+    title VARCHAR(40) NOT NULL,
+    createdOn TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
+
+CREATE TABLE subCategory(
+    subCategoryId INT PRIMARY KEY AUTO_INCREMENT,
+    categoryId INT NOT NULL,
+    title VARCHAR(40) NOT NULL,
+    createdOn TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (categoryId) REFERENCES category(categoryId) ON DELETE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
+
+CREATE TABLE refers(
+    referId INT PRIMARY KEY AUTO_INCREMENT,
+    userId INT NOT NULL,
+    newUserId INT NOT NULL,
+    status BOOL DEFAULT FALSE,
+    createdOn TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (userId) REFERENCES user(userId) ON DELETE CASCADE,
+    FOREIGN KEY (newUserId) REFERENCES user(userId) ON DELETE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
+
+CREATE TABLE business(
+    businessId INT PRIMARY KEY AUTO_INCREMENT,
+    userId INT NOT NULL,
+    storeName VARCHAR(50) NOT NULL,
+    storeDesc VARCHAR(100) NOT NULL,
+    storeContact CHAR(11) NOT NULL,
+    storeAddress VARCHAR(200) NOT NULL,
+    storeCity VARCHAR(50) NOT NULL,
+    rating INT DEFAULT 0,
+    lat DECIMAL(10, 8) NOT NULL, 
+    lng DECIMAL(11, 8) NOT NULL
+    image1 VARCHAR(255) NOT NULL,
+    image2 VARCHAR(255) DEFAULT NULL,
+    image3 VARCHAR(255) DEFAULT NULL,
+    createdOn TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (userId) REFERENCES user(userId) ON DELETE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
+
+CREATE TABLE product(
+    productId INT PRIMARY KEY AUTO_INCREMENT,
+    businessId INT NOT NULL,
+    categoryId INT NOT NULL,
+    subCategoryId INT DEFAULT NULL,
+    productName VARCHAR(40) NOT NULL,
+    productPrice DECIMAL(10,2),
+    gst DECIMAL(10,2),
+    productImage1 VARCHAR(255) NOT NULL,
+    productImage2 VARCHAR(255),
+    productImage3 VARCHAR(255),
+    productImage4 VARCHAR(255),
+    productVideo VARCHAR(255),
+    productDesc VARCHAR(100),
+    createdOn TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (businessId) REFERENCES business(businessId) ON DELETE CASCADE,
+    FOREIGN KEY (categoryId) REFERENCES category(categoryId) ON DELETE CASCADE,
+    FOREIGN KEY (subCategoryId) REFERENCES subCategory(subCategoryId) ON DELETE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
+
+CREATE TABLE services(
+    serviceId INT PRIMARY KEY AUTO_INCREMENT,
+    businessId INT NOT NULL,
+    categoryId INT NOT NULL,
+    subCategoryId INT DEFAULT NULL,
+    serviceName VARCHAR(40) NOT NULL,
+    serviceDesc VARCHAR(100),
+    serviceImage1 VARCHAR(255),
+    serviceImage2 VARCHAR(255),
+    serviceImage3 VARCHAR(255),
+    serviceImage4 VARCHAR(255),
+    serviceVideo VARCHAR(255),
+    servicePrice DECIMAL(10, 2),
+    createdOn TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (businessId) REFERENCES business(businessId) ON DELETE CASCADE,
+    FOREIGN KEY (categoryId) REFERENCES category(categoryId) ON DELETE CASCADE,
+    FOREIGN KEY (subCategoryId) REFERENCES subCategory(subCategoryId) ON DELETE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
+
+CREATE TABLE offers(
+    offerId INT PRIMARY KEY AUTO_INCREMENT,
+    businessId INT NOT NULL,
+    productId INT,
+    offerName VARCHAR(40) NOT NULL,
+    offerDesc VARCHAR(100),
+    offerImage1 VARCHAR(255),
+    offerImage2 VARCHAR(255),
+    offerImage3 VARCHAR(255),
+    offerImage4 VARCHAR(255),
+    offerVideo VARCHAR(255),
+    createdOn TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (businessId) REFERENCES business(businessId) ON DELETE CASCADE,
+    FOREIGN KEY (productId) REFERENCES product(productId) ON DELETE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
+
+CREATE TABLE ads(
+    adId INT PRIMARY KEY AUTO_INCREMENT,
+    businessId INT NOT NULL,
+    adName VARCHAR(40) NOT NULL,
+    adDesc VARCHAR(100) NOT NULL,
+    adImage1 VARCHAR(255) NOT NULL,
+    adImage2 VARCHAR(255) NOT NULL,
+    adImage3 VARCHAR(255) NOT NULL,
+    adImage4 VARCHAR(255) NOT NULL,
+    adVideo VARCHAR(255) NOT NULL,
+    approve BOOL DEFAULT FALSE,
+    createdOn TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (businessId) REFERENCES business(businessId) ON DELETE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
+
+CREATE TABLE post(
+    postId INT PRIMARY KEY AUTO_INCREMENT,
+    userId INT NOT NULL,
+    postDesc VARCHAR(200) NOT NULL,
+    postImage1 VARCHAR(255),
+    postImage2 VARCHAR(255),
+    postImage3 VARCHAR(255),
+    postImage4 VARCHAR(255),
+    postVideo VARCHAR(255),
+    approve BOOL DEFAULT FALSE,
+    views INT DEFAULT 0,
+    likes INT DEFAULT 0,
+    createdOn TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (userId) REFERENCES user(userId) ON DELETE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
+
+CREATE TABLE comments(
+    commentId INT PRIMARY KEY AUTO_INCREMENT,
+    postId INT NOT NULL,
+    userId INT NOT NULL,
+    text VARCHAR(100) NOT NULL,
+    createdOn TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (userId) REFERENCES user(userId) ON DELETE CASCADE,
+    FOREIGN KEY (postId) REFERENCES post(postId) ON DELETE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
+
+CREATE TABLE likes(
+    likeId INT PRIMARY KEY AUTO_INCREMENT,
+    userId INT UNIQUE NOT NULL,
+    postId INT NOT NULL,
+    createdOn TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (userId) REFERENCES user(userId) ON DELETE CASCADE,
+    FOREIGN KEY (postId) REFERENCES post(postId) ON DELETE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
+
+CREATE TABLE viewers(
+    viewerId INT PRIMARY KEY AUTO_INCREMENT,
+    userId INT UNIQUE NOT NULL,
+    businessId INT NOT NULL,
+    createdOn TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (userId) REFERENCES user(userId) ON DELETE CASCADE,
+    FOREIGN KEY (businessId) REFERENCES business(businessId) ON DELETE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
+
+CREATE TABLE reviews(
+    reviewId INT PRIMARY KEY AUTO_INCREMENT,
+    businessId INT NOT NULL,
+    userId INT NOT NULL,
+    rating INT NOT NULL,
+    text VARCHAR(100) NOT NULL, 
+    createdOn TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (userId) REFERENCES user(userId) ON DELETE CASCADE,
+    FOREIGN KEY (businessId) REFERENCES business(businessId) ON DELETE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
+
+CREATE TABLE feedback(
+    feedbackId INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(50) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    message VARCHAR(100) NOT NULL,
+    createdOn TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
+
+CREATE TABLE vendorTransaction(
+    transactionId INT PRIMARY KEY AUTO_INCREMENT,
+    userId INT NOT NULL,
+    businessId INT NOT NULL,
+    months INT DEFAULT 1,
+    amountPaid DECIMAL(10, 2) NOT NULL,
+    createdOn TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    expiryOn TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (userId) REFERENCES user(userId) ON DELETE CASCADE,
+    FOREIGN KEY (businessId) REFERENCES business(businessId) ON DELETE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
+
+CREATE TABLE contest(
+    contestId INT PRIMARY KEY AUTO_INCREMENT,
+    contestName VARCHAR(50) NOT NULL,
+    contestDesc VARCHAR(100) NOT NULL,
+    prizes VARCHAR(50) NOT NULL,
+    active BOOL DEFAULT TRUE,
+    createdOn TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
+
+CREATE TABLE contestAnswers(
+    answerId INT PRIMARY KEY AUTO_INCREMENT,
+    userId INT NOT NULL,
+    contestId INT NOT NULL,
+    answerType VARCHAR(20) NOT NULL,
+    answerText VARCHAR(100) NOT NULL,
+    answerImage VARCHAR(255) NOT NULL,
+    answerVideo VARCHAR(255) NOT NULL,
+    FOREIGN KEY (userId) REFERENCES user(userId) ON DELETE CASCADE,
+    createdOn TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;

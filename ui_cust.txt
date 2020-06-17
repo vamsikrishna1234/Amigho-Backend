@@ -1,0 +1,36 @@
+CUSTOMER APP:
+
+    Bottom Navigation
+        1.Feed
+            Wishes
+            Puzzles/ Questions
+            Posts :(One of the below)
+                1. Post
+                2. Services
+
+        2.Listings
+            Categories Grid (Filters)
+            Businesses(max 6) / Services/ Products
+
+        3.Offers
+            Tabs
+                Offers
+                Services
+
+        4.Profile
+            Basic details of the profile
+            Background image and a logo
+            Edit Profile Button
+            Tabs    
+                My Reviews
+                My Rewards
+
+        5.More
+            BottomSheet (this will pop up from bottom)
+            Privacy Policy
+            Help
+            TNC
+            Share App
+            Logout
+            
+            
