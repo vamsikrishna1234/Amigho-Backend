@@ -26,10 +26,8 @@ VENDOR APP:
             Tabs (All related to the business)
                 1.Overview
                     Extra details about business
-                2.Products
-                    Products would be name and category along with image
-                3.Ads
-                    Ads for some content
+                2.Photos
+                    Photos of the shop
 
         5.More
             BottomSheet (this will pop up from bottom)
