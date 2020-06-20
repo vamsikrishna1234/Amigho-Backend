@@ -224,10 +224,10 @@ module.exports = (app, db) => {
 
 	// get todays birthdays
 	app.get('/getPosts', tokenVerification, (req, res) => {
-		var sql = "SELECT * FROM post WHERE createdOn >= DATE_SUB(NOW(), INTERVAL 15 DAY) AND active = 1";
+		var sql = "SELECT *.post, user.userId, user.name FROM post INNER JOIN user ON post.userId = user.userId WHERE createdOn >= DATE_SUB(NOW(), INTERVAL 15 DAY) AND approve = 1";
 		db.query(sql, (err, result) => {
 			if(err){
-				console.log("CONTESTS ERROR :: ", err.sqlMessage);
+				console.log("POSTS ERROR :: ", err.sqlMessage);
 				res.sendStatus(500);
 			}else{
 				res.status(200).json(result);
@@ -238,7 +238,7 @@ module.exports = (app, db) => {
 	// get users posts
 	app.get('/getUserPosts/:userId', (req, res) => {
 		var userId = req.params.userId;
-		var sql = "SELECT * FROM post WHERE userId = ?";
+		var sql = "SELECT post.* FROM post WHERE userId = ?";
 
 		db.query(sql, [userId], (err, result) => {
 			if(err){
@@ -313,7 +313,7 @@ module.exports = (app, db) => {
 	// get business reviews by businessId
 	app.get('/getBusinessReviews/:businessId', (req, res) => {
 		var businessId = req.params.businessId;
-		var sql = "SELECT * FROM reviews WHERE businessId = ?";
+		var sql = "SELECT reviews.*, user.name FROM reviews INNER JOIN user ON reviews.userId = user.userId WHERE businessId = ?";
 
 		db.query(sql, [businessId], (err, result) => {
 			if(err){
