@@ -3,6 +3,7 @@ const express    = require('express');
 const bodyParser = require('body-parser');
 const app        = express();
 const mysql      = require('mysql');
+const fileUpload = require('express-fileupload');
 
 // using .env file
 require('dotenv').config();
@@ -21,9 +22,14 @@ con.connect(function(err) {
   console.log("DB Connected!");
 });
 
+// middlewares
 // parse application/x-www-form-urlencoded && application/json
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }))
 app.use(bodyParser.json({limit: '50mb'}))
+app.use(fileUpload({
+  limits: { fileSize: 50 * 1024 * 1024 },
+  createParentPath: true
+}));
 
 require('./routes')(app, con);
 
