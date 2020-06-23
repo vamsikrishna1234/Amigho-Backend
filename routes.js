@@ -44,16 +44,20 @@ module.exports = (app, db) => {
 
 	//save the image
 	function saveImageToFile(base64Data, filePath) {
-		if (!fs.existsSync(filePath))
-			fs.mkdirSync(filePath, { recursive: true }, (err) => {
-				if (err) {
-					console.log("DIR CREATION ERROR:", err);
-				} else {
-					fs.writeFile(filePath, base64Data, 'base64', function (err) {
-						if (err) console.log("ERROR" + err);
-					});
-				}
-			});
+		fs.mkdir(filePath.split("/image_")[0], { recursive: true }, (err) => {
+			if (err) {
+				console.log("DIR CREATION ERROR:", err);
+			} else {
+				fs.writeFile(filePath, base64Data, 'base64', function (err) {
+					if (err) { console.log("ERROR" + err); }
+				});
+			}
+		});
+	}
+
+	//delete a file
+	function deleteFile(filePath) {
+		fs.unlink(__dirname + filePath);
 	}
 
 	// login user
@@ -186,6 +190,7 @@ module.exports = (app, db) => {
 		var categoryId = req.body.categoryId;
 		var subCategoryId = req.body.subCategoryId;
 
+	
 		var timeStamp = Math.floor(Date.now() / 1000);
 		var storeImage1 = "./serverData/business/" + userId + "/" + timeStamp + "/image_1.jpg";
 		var storeImage2 = "./serverData/business/" + userId + "/" + timeStamp + "/image_2.jpg";
@@ -222,6 +227,7 @@ module.exports = (app, db) => {
 	// get active contests
 	app.get('/getContests', tokenVerification, (req, res) => {
 		var sql = "SELECT * FROM contest WHERE active = 1";
+
 		db.query(sql, (err, result) => {
 			if (err) {
 				console.log("CONTESTS ERROR :: ", err.sqlMessage);
@@ -234,7 +240,7 @@ module.exports = (app, db) => {
 
 	// get todays birthdays
 	app.get('/getPosts', tokenVerification, (req, res) => {
-		var sql = "SELECT *.post, user.userId, user.name FROM post INNER JOIN user ON post.userId = user.userId WHERE createdOn >= DATE_SUB(NOW(), INTERVAL 15 DAY) AND approve = 1";
+		var sql = "SELECT post.*, user.userId, user.name FROM post INNER JOIN user ON post.userId = user.userId WHERE post.createdOn >= DATE_SUB(NOW(), INTERVAL 15 DAY) AND post.approve = 1";
 		db.query(sql, (err, result) => {
 			if (err) {
 				console.log("POSTS ERROR :: ", err.sqlMessage);
@@ -338,7 +344,7 @@ module.exports = (app, db) => {
 	// get business viewers by businessId
 	app.get('/getBusinessViewers/:businessId', (req, res) => {
 		var businessId = req.params.businessId;
-		var sql = "SELECT user.* FROM user INNER JOIN viewers ON user.userId = viewer.userId WHERE businessId = ?";
+		var sql = "SELECT user.* FROM user INNER JOIN viewers ON user.userId = viewers.userId WHERE businessId = ?";
 
 		db.query(sql, [businessId], (err, result) => {
 			if (err) {
@@ -360,7 +366,7 @@ module.exports = (app, db) => {
 				console.log("BUSINESS PROFILE ERROR :: ", err.sqlMessage);
 				res.sendStatus(500);
 			} else {
-				res.status(200).json(result);
+				res.status(200).json(result[0]);
 			}
 		})
 	})
@@ -411,13 +417,13 @@ module.exports = (app, db) => {
 		var sql = "INSERT INTO post(userId, postDesc, postImage1, postImage2, postImage3, postImage4, postVideo) VALUES(?, ?, ?, ?, ?, ?, ?)";
 
 		db.query(sql, [userId, postDesc, finalPostImage1, finalPostImage2, finalPostImage3, finalPostImage4, postVideo], (err, result) => {
-			if(err){
+			if (err) {
 				console.log("NEW PSOT :: ", err);
 				res.sendStatus(500);
-			}else{
+			} else {
 				res.status(200).json({
-					success : true,
-					message : "Done"
+					success: true,
+					message: "Done"
 				})
 			}
 		})
@@ -446,17 +452,17 @@ module.exports = (app, db) => {
 		saveImageToFile(offerImage3, finalOfferImage3);
 		saveImageToFile(offerImage4, finalOfferImage4);
 
-		var sql = "INSERT INTO offers(businessId, productId, offerName, offerDesc, offerImage1, offerImage2, offerImage3, offerImage4, offerImage5, offerVideo) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
+		var sql = "INSERT INTO offers(businessId, productId, offerName, offerDesc, offerImage1, offerImage2, offerImage3, offerImage4, offerVideo) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
 
 		db.query(sql, [businessId, productId, offerName, offerDesc, finalOfferImage1, finalOfferImage2, finalOfferImage3, finalOfferImage4, offerVideo], (err, result) => {
-			if(err){
+			if (err) {
 				console.log("NEW OFFER :: ", err);
 				res.sendStatus(500);
-			}else{
+			} else {
 				res.status(200).json({
-					success : true,
-					message : "Done"
+					success: true,
+					message: "Done"
 				})
 			}
 		})
@@ -487,19 +493,19 @@ module.exports = (app, db) => {
 		var sql = "INSERT INTO ads(businessId, adName, adDesc, adImage1, adImage2, adImage3, adImage4, adVideo) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
 
 		db.query(sql, [businessId, adName, adDesc, finalAdImage1, finalAdImage2, finalAdImage3, finalAdImage4, adVideo], (err, result) => {
-			if(err){
+			if (err) {
 				console.log("NEW AD :: ", err);
 				res.sendStatus(500);
-			}else{
+			} else {
 				res.status(200).json({
-					success : true,
-					message : "Done"
+					success: true,
+					message: "Done"
 				})
 			}
 		})
 
 	})
-	
+
 	// create new service
 	app.post('/createNewService', (req, res) => {
 		var businessId = req.body.businessId;
@@ -528,13 +534,13 @@ module.exports = (app, db) => {
 		var sql = "INSERT INTO services(businessId, categoryId, subCategoryId, serviceName, serviceDesc, serviceImage1, serviceImage2, serviceImage3, serviceImage4, serviceVideo, servicePrice) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
 		db.query(sql, [businessId, categoryId, subCategoryId, serviceName, serviceDesc, finalServiceImage1, finalServiceImage2, finalServiceImage3, finalServiceImage4, serviceVideo, servicePrice], (err, result) => {
-			if(err){
+			if (err) {
 				console.log("NEW SERVICES :: ", err);
 				res.sendStatus(500);
-			}else{
+			} else {
 				res.status(200).json({
-					success : true,
-					message : "Done"
+					success: true,
+					message: "Done"
 				})
 			}
 		})
@@ -569,17 +575,352 @@ module.exports = (app, db) => {
 
 		var sql = "INSERT INTO product(businessId, categoryId, subCategoryId, productName, productPrice, gst, productImage1, productImage2, productImage3, productImage4, productVideo, productDesc) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-		db.query(sql, [businessId, categoryId, subCategoryId, productName, productDesc, productPrice, gst, finalProductImage1, finalProductImage2, finalProductImage3, finalProductImage4, productVideo], (err, result) => {
-			if(err){
+		db.query(sql, [businessId, categoryId, subCategoryId, productName, productPrice, gst, finalProductImage1, finalProductImage2, finalProductImage3, finalProductImage4, productVideo, productDesc], (err, result) => {
+			if (err) {
 				console.log("NEW PRODUCT :: ", err);
 				res.sendStatus(500);
-			}else{
+			} else {
+				res.status(200).json({
+					success: true,
+					message: "Done"
+				})
+			}
+		})
+
+	})
+
+	app.post('/uploadUserImage', (req, res) => {
+		var profileImage = req.body.profileImage;
+		var userId = req.body.userId;
+
+		var path = "./serverData/user/image_" + userId + ".jpg";
+
+		fs.mkdir(path.split("/image_")[0], { recursive: true }, (err) => {
+			if (err) {
+				console.log("DIR CREATION ERROR:", err);
+			} else {
+				fs.writeFile(path, profileImage, 'base64', function (err) {
+					if (err) { console.log("ERROR" + err); }
+				});
+				res.status(500).json({
+					message: "Done",
+					success: 1
+				})
+			}
+		});
+	})
+
+	app.get('/getImage', (req, res) => {
+		console.log(req.query.path);
+		res.sendFile(__dirname + req.query.path.substring(1), (err) => {
+			if (err) {
+				console.log(err);
+			}
+		});
+	})
+
+	app.get('/getUserImage', (req, res) => {
+		var userId = req.query.userId;
+		var path = "/serverData/user/image_" + userId + ".jpg";
+
+		res.sendFile(__dirname + path, (err) => {
+			if (err) {
+				console.log(err);
+			}
+		});
+	})
+
+	// get all comments for post
+	app.get('/getAllComments/:postId', (req, res) => {
+		var postId = req.params.postId;
+		var sql = "SELECT * FROM comments WHERE postId = ?";
+
+		db.query(sql, [postId], (err, result) => {
+			if (err) {
+				console.log("GET COMMENTS :: ", err);
+				res.sendStatus(500);
+			} else {
+				res.status(200).json(result)
+			}
+		})
+	})
+
+	// post comment
+	app.post('/postComment', (req, res) => {
+		var postId = req.body.postId;
+		var userId = req.body.userId;
+		var text = req.body.text;
+		var userName = req.body.userName;
+		var sql = "INSERT INTO comments(postId, userId, userName, text) VALUES(?, ?, ?, ?)";
+
+		db.query(sql, [postId, userId, userName, text], (err, result) => {
+			if (err) {
+				console.log("POST COMMENTS :: ", err);
+				res.sendStatus(500);
+			} else {
 				res.status(200).json({
 					success : true,
 					message : "Done"
 				})
 			}
 		})
+	})
 
+	// add like
+	app.post('/likePost', (req, res) => {
+		var userId = req.body.userId;
+		var postId = req.body.postId;
+		var sql = "INSERT INTO likes(postId, userId) VALUES(?, ?)";
+
+		db.query(sql, [postId, userId], (err, result) => {
+			if (err) {
+				console.log("LIKE POST :: ", err);
+				res.sendStatus(500);
+			} else {
+				res.status(200).json({
+					message: "Done",
+					success: true
+				})
+			}
+		})
+	})
+
+	// add view to post
+	app.post('/addView', (req, res) => {
+		var userId = req.body.userId;
+		var postId = req.body.postId;
+		var sql = "INSERT INTO views(postId, userId) VALUES(?, ?)";
+
+		db.query(sql, [postId, userId], (err, result) => {
+			if (err) {
+				console.log("VIEW TO POST :: ", err);
+				res.sendStatus(500);
+			} else {
+				res.status(200).json({
+					message: "Done",
+					success: true
+				})
+			}
+		})
+	})
+
+	// delete post
+	app.get('/deletePost/:postId', (req, res) => {
+		var postId = req.params.postId;
+		var deleteSql = "DELETE FROM post WHERE postId = ?";
+		var selectSql = "SELECT * FROM post WHERE postId = ?";
+
+		//get file paths and delte those files and then delete the record
+		db.query(selectSql, [postId], (err, result) => {
+			if (err) {
+				console.log("DELETE POST :: ", err);
+				res.sendStatus(500);
+			} else {
+				if (result.length > 0) {
+					deleteFile(result[0].postImage1);
+					deleteFile(result[0].postImage2);
+					deleteFile(result[0].postImage3);
+					deleteFile(result[0].postImage4);
+					deleteFile(result[0].postVideo);
+
+					db.query(deleteSql, [postId], (err, result) => {
+						if (err) {
+							console.log("DELETE POST :: ", err);
+							res.sendStatus(500);
+						} else {
+							res.status(200).json({
+								message: "Done",
+								success: true
+							})
+						}
+					})
+				}
+			}
+		})
+	})
+
+	// delete prooduct
+	app.get('/deleteProduct/:productId', (req, res) => {
+		var productId = req.params.productId;
+		var deleteSql = "DELETE FROM product WHERE productId = ?";
+		var selectSql = "SELECT * FROM product WHERE productId = ?";
+
+		//get file paths and delte those files and then delete the record
+		db.query(selectSql, [productId], (err, result) => {
+			if (err) {
+				console.log("DELETE PRODUCT :: ", err);
+				res.sendStatus(500);
+			} else {
+				if (result.length > 0) {
+					deleteFile(result[0].productImage1);
+					deleteFile(result[0].productImage2);
+					deleteFile(result[0].productImage3);
+					deleteFile(result[0].productImage4);
+					deleteFile(result[0].productVideo);
+
+					db.query(deleteSql, [productId], (err, result) => {
+						if (err) {
+							console.log("DELETE PRODUCT :: ", err);
+							res.sendStatus(500);
+						} else {
+							res.status(200).json({
+								message: "Done",
+								success: true
+							})
+						}
+					})
+				}
+			}
+		})
+	})
+
+	// delete offer
+	app.get('/deleteOffer/:offerId', (req, res) => {
+		var offerId = req.params.offerId;
+		var deleteSql = "DELETE FROM offers WHERE offerId = ?";
+		var selectSql = "SELECT * FROM offers WHERE offerId = ?";
+
+		//get file paths and delte those files and then delete the record
+		db.query(selectSql, [offerId], (err, result) => {
+			if (err) {
+				console.log("DELETE OFFER :: ", err);
+				res.sendStatus(500);
+			} else {
+				if (result.length > 0) {
+					deleteFile(result[0].offerImage1);
+					deleteFile(result[0].offerImage2);
+					deleteFile(result[0].offerImage3);
+					deleteFile(result[0].offerImage4);
+					deleteFile(result[0].offerVideo);
+
+					db.query(deleteSql, [offerId], (err, result) => {
+						if (err) {
+							console.log("DELETE OFFER :: ", err);
+							res.sendStatus(500);
+						} else {
+							res.status(200).json({
+								message: "Done",
+								success: true
+							})
+						}
+					})
+				}
+			}
+		})
+	})
+
+	// delete service
+	app.get('/deleteService/:serviceId', (req, res) => {
+		var serviceId = req.params.serviceId;
+		var deleteSql = "DELETE FROM services WHERE serviceId = ?";
+		var selectSql = "SELECT * FROM services WHERE serviceId = ?";
+
+		//get file paths and delte those files and then delete the record
+		db.query(selectSql, [serviceId], (err, result) => {
+			if (err) {
+				console.log("DELETE SERVICES :: ", err);
+				res.sendStatus(500);
+			} else {
+				if (result.length > 0) {
+					deleteFile(result[0].serviceImage1);
+					deleteFile(result[0].serviceImage2);
+					deleteFile(result[0].serviceImage3);
+					deleteFile(result[0].serviceImage4);
+					deleteFile(result[0].serviceVideo);
+
+					db.query(deleteSql, [serviceId], (err, result) => {
+						if (err) {
+							console.log("DELETE SERVICE :: ", err);
+							res.sendStatus(500);
+						} else {
+							res.status(200).json({
+								message: "Done",
+								success: true
+							})
+						}
+					})
+				}
+			}
+		})
+	})
+
+	// delete ad
+	app.get('/deleteAd/:adId', (req, res) => {
+		var adId = req.params.adId;
+		var deleteSql = "DELETE FROM ads WHERE adId = ?";
+		var selectSql = "SELECT * FROM ads WHERE adId = ?";
+
+		//get file paths and delte those files and then delete the record
+		db.query(selectSql, [adId], (err, result) => {
+			if (err) {
+				console.log("DELETE AD :: ", err);
+				res.sendStatus(500);
+			} else {
+				if (result.length > 0) {
+					deleteFile(result[0].adImage1);
+					deleteFile(result[0].adImage2);
+					deleteFile(result[0].adImage3);
+					deleteFile(result[0].adImage4);
+					deleteFile(result[0].adVideo);
+
+					db.query(deleteSql, [adId], (err, result) => {
+						if (err) {
+							console.log("DELETE AD :: ", err);
+							res.sendStatus(500);
+						} else {
+							res.status(200).json({
+								message: "Done",
+								success: true
+							})
+						}
+					})
+				}
+			}
+		})
+	})
+
+	// add contest answer
+	app.post('/addContestAnswer', (req, res) => {
+		var userId = req.body.userId;
+		var contestId = req.body.contestId;
+		var answerType = req.bodu.answerType;
+		var answerText = req.body.answerText;
+		var answerImage = req.body.answerImage;
+		var answerVideo = req.body.answerVideo;
+
+		var timestamp = Math.floor(Date.now() / 1000);
+		var contestImage = "./serverData/contest/image/" + contestId + "/" + userId + "/" + timestamp + "/image.jpg";
+
+		if(answerType === 'i')
+			saveImageToFile(answerImage, contestImage);
+
+		var sql = "INSERT INTO contestAnswers(userId, contestId, answerType, answerImage, answerText, answerVideo) VALUES(?, ?, ?, ?, ?, ?)";
+
+		db.query(sql, [userId, contestId, answerType, answerImage, answerText, answerVideo], (err, result) => {
+			if (err) {
+				console.log("ADD CONTEST ANSWERS :: ", err);
+				res.sendStatus(500);
+			} else {
+				res.status(200).json({
+					message: "Done",
+					success: true
+				})
+			}
+		})
+	})
+
+	// get category from cat id
+	app.get('/getCategory/:categoryId', (req, res) => {
+		var categoryId = req.params.categoryId;
+		var sql = "SELECT * FROM category WHERE categoryId = ?";
+
+		db.query(sql, [categoryId], (err, result) => {
+			if (err) {
+				console.log("GET CATEGORY :: ", err);
+				res.sendStatus(500);
+			} else {
+				res.status(200).json(result[0])
+			}
+		})
 	})
 }

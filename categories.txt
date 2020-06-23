@@ -1,0 +1,88 @@
+INSERT INTO category(title) VALUES('General Stores');
+INSERT INTO category(title) VALUES('Medicine');
+INSERT INTO category(title) VALUES('Clothing');
+INSERT INTO category(title) VALUES('Electronics');
+INSERT INTO category(title) VALUES('Entertainment');
+INSERT INTO category(title) VALUES('Food');
+INSERT INTO category(title) VALUES('Pets');
+INSERT INTO category(title) VALUES('Religion and spirituality');
+INSERT INTO category(title) VALUES('Books');
+INSERT INTO category(title) VALUES('Fashion');
+INSERT INTO category(title) VALUES('Furnitures');
+INSERT INTO category(title) VALUES('Jewellery');
+INSERT INTO category(title) VALUES('Sports and outdoors');
+INSERT INTO category(title) VALUES('Automobile');
+INSERT INTO category(title) VALUES('Others');
+
+INSERT INTO subCategory(categoryId, title) VALUES(1, 'Accessories');
+INSERT INTO subCategory(categoryId, title) VALUES(1, 'Daily Needs');
+INSERT INTO subCategory(categoryId, title) VALUES(1, 'Kirana Stores');
+INSERT INTO subCategory(categoryId, title) VALUES(1, 'Others');
+
+INSERT INTO subCategory(categoryId, title) VALUES(2, 'Pharmaceuticals');
+INSERT INTO subCategory(categoryId, title) VALUES(2, 'Ayurvedic');
+INSERT INTO subCategory(categoryId, title) VALUES(2, 'Others');
+
+INSERT INTO subCategory(categoryId, title) VALUES(3, 'Clothing');
+INSERT INTO subCategory(categoryId, title) VALUES(3, 'Shoes');
+INSERT INTO subCategory(categoryId, title) VALUES(3, 'Accessories');
+INSERT INTO subCategory(categoryId, title) VALUES(3, 'Others');
+
+INSERT INTO subCategory(categoryId, title) VALUES(4, 'Computers');
+INSERT INTO subCategory(categoryId, title) VALUES(4, 'Repairing');
+INSERT INTO subCategory(categoryId, title) VALUES(4, 'Mobiles');
+INSERT INTO subCategory(categoryId, title) VALUES(4, 'Watches');
+INSERT INTO subCategory(categoryId, title) VALUES(4, 'Gadgets');
+INSERT INTO subCategory(categoryId, title) VALUES(4, 'Others');
+
+INSERT INTO subCategory(categoryId, title) VALUES(5, 'Theatres');
+INSERT INTO subCategory(categoryId, title) VALUES(5, 'Movies');
+INSERT INTO subCategory(categoryId, title) VALUES(5, 'Musics');
+INSERT INTO subCategory(categoryId, title) VALUES(5, 'Studios');
+INSERT INTO subCategory(categoryId, title) VALUES(5, 'Galleries');
+INSERT INTO subCategory(categoryId, title) VALUES(5, 'Others');
+
+INSERT INTO subCategory(categoryId, title) VALUES(6, 'Hotels');
+INSERT INTO subCategory(categoryId, title) VALUES(6, 'Bars');
+INSERT INTO subCategory(categoryId, title) VALUES(6, 'Snack stores');
+INSERT INTO subCategory(categoryId, title) VALUES(6, 'Others');
+
+INSERT INTO subCategory(categoryId, title) VALUES(7, 'Animals');
+INSERT INTO subCategory(categoryId, title) VALUES(7, 'Accessories');
+INSERT INTO subCategory(categoryId, title) VALUES(7, 'Others');
+
+INSERT INTO subCategory(categoryId, title) VALUES(8, 'Artifacts');
+INSERT INTO subCategory(categoryId, title) VALUES(8, 'Books');
+INSERT INTO subCategory(categoryId, title) VALUES(8, 'Idols');
+INSERT INTO subCategory(categoryId, title) VALUES(8, 'Others');
+
+INSERT INTO subCategory(categoryId, title) VALUES(9, 'Curriculum');
+INSERT INTO subCategory(categoryId, title) VALUES(9, 'Novels');
+INSERT INTO subCategory(categoryId, title) VALUES(9, 'Religious');
+INSERT INTO subCategory(categoryId, title) VALUES(9, 'Others');
+
+INSERT INTO subCategory(categoryId, title) VALUES(10, 'Makeups');
+INSERT INTO subCategory(categoryId, title) VALUES(10, 'Salons');
+INSERT INTO subCategory(categoryId, title) VALUES(10, 'Beauty');
+INSERT INTO subCategory(categoryId, title) VALUES(10, 'Others');
+
+INSERT INTO subCategory(categoryId, title) VALUES(11, 'Home Appliances');
+INSERT INTO subCategory(categoryId, title) VALUES(11, 'Electricals');
+INSERT INTO subCategory(categoryId, title) VALUES(11, 'Tiles and Marbles');
+INSERT INTO subCategory(categoryId, title) VALUES(11, 'Others');
+
+INSERT INTO subCategory(categoryId, title) VALUES(12, 'Gold and Silver');
+INSERT INTO subCategory(categoryId, title) VALUES(12, 'Diamonds and Platinium');
+INSERT INTO subCategory(categoryId, title) VALUES(12, 'All');
+INSERT INTO subCategory(categoryId, title) VALUES(12, 'Others');
+
+INSERT INTO subCategory(categoryId, title) VALUES(13, 'Sport Equipments');
+INSERT INTO subCategory(categoryId, title) VALUES(13, 'Manufactures');
+INSERT INTO subCategory(categoryId, title) VALUES(13, 'Custom');
+INSERT INTO subCategory(categoryId, title) VALUES(13, 'Others');
+
+INSERT INTO subCategory(categoryId, title) VALUES(14, 'Cars');
+INSERT INTO subCategory(categoryId, title) VALUES(14, 'Bikes');
+INSERT INTO subCategory(categoryId, title) VALUES(14, 'Cycles');
+INSERT INTO subCategory(categoryId, title) VALUES(14, 'Trucks And Loaders');
+INSERT INTO subCategory(categoryId, title) VALUES(14, 'Others');

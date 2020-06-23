@@ -33,4 +33,90 @@ CUSTOMER APP:
             Share App
             Logout
             
-            
+        
+////////////
+General Stores
+	Accessories
+	Daily Needs
+	Kirana Stores
+	Others
+
+Medicine
+	Pharmaceuticals
+	Ayurvedic
+	Others
+
+Clothing
+	Clothing
+	Shoes
+	Accessories
+	Others	
+	
+Electronics
+	Computers
+	Repairing
+	Mobiles
+	Watches
+	Gadgets
+	Others
+Entertainment
+	Theatres
+	Movies
+	Musics
+	Studios
+	Galleries
+	Others
+
+Food
+	Hotels
+	Bars
+	Snack stores
+	Others
+
+Pets
+	Animals
+	Accessories
+	Others
+
+Religion and spirituality
+	Artifacts
+	Books
+	Idols
+	Others
+
+Books
+	Curriculum
+	Novels
+	Religious
+	Others
+
+Fashion
+	Makeups
+	Salons
+	Beauty
+	Others
+
+Furnitures
+	Home Appliances
+	Electricals
+	Tiles and Marbles
+	Others
+
+Jewellery
+	Gold and Silver
+	Diamonds and Platinium
+	All
+	Others
+
+Sports and outdoors
+	Sport Equipments
+	Manufactures
+	Custom
+	Others
+
+Automobile
+	Cars
+	Bikes
+	Cycles
+	Trucks
+	Others
