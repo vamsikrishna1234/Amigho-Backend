@@ -9,27 +9,27 @@ const fileUpload = require('express-fileupload');
 require('dotenv').config();
 
 // mysql connection
-// const con = mysql.createConnection({
-//   host: process.env.DB_HOST,
-//   user: process.env.DB_USER,
-//   password: process.env.DB_PASS,
-//   database: process.env.DB_NAME,
-//   charset : "utf8mb4"
-// });
-
-
-const  db_config = {
+const con = mysql.createConnection({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASS,
   database: process.env.DB_NAME,
   charset : "utf8mb4"
-};
+});
 
-// con.connect(function(err) {
-//   if (err) throw err;
-//   console.log("DB Connected!");
-// });
+
+// const  db_config = {
+//   host: process.env.DB_HOST,
+//   user: process.env.DB_USER,
+//   password: process.env.DB_PASS,
+//   database: process.env.DB_NAME,
+//   charset : "utf8mb4"
+// };
+
+con.connect(function(err) {
+  if (err) throw err;
+  console.log("DB Connected!");
+});
 
 // middlewares
 // parse application/x-www-form-urlencoded && application/json
@@ -41,30 +41,30 @@ app.use(fileUpload({
 }));
 
 // handling connection lost
-var con;
-function handleDisconnect() {
+// var con;
+// function handleDisconnect() {
 
-  con = mysql.createConnection(db_config); 
+//   con = mysql.createConnection(db_config); 
 
-  con.connect(function(err) {              
-    if(err) {                                     
-      console.log('error when connecting to db:', err);
-      setTimeout(handleDisconnect, 2000);
-    }else{
-      console.log("DB Connected");
-    }                                   
-  });                                     
+//   con.connect(function(err) {              
+//     if(err) {                                     
+//       console.log('error when connecting to db:', err);
+//       setTimeout(handleDisconnect, 2000);
+//     }else{
+//       console.log("DB Connected");
+//     }                                   
+//   });                                     
                                          
-  con.on('error', function(err) {
-    if(err.code === 'PROTOCOL_CONNECTION_LOST') { 
-      handleDisconnect();                         
-    } else {     
-      handleDisconnect();                                         
-    }
-  });
+//   con.on('error', function(err) {
+//     if(err.code === 'PROTOCOL_CONNECTION_LOST') { 
+//       handleDisconnect();                         
+//     } else {     
+//       handleDisconnect();                                         
+//     }
+//   });
 
-}
-handleDisconnect();
+// }
+// handleDisconnect();
 
 require('./routes')(app, con);
 

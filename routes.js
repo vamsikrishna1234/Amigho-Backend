@@ -35,6 +35,9 @@ module.exports = (app, db) => {
 
 	//save the image
 	function saveImageToFile(base64Data, filePath) {
+		if (base64Data === undefined)
+			return
+
 		fs.mkdir(filePath.split("/image_")[0], { recursive: true }, (err) => {
 			if (err) {
 				console.log("DIR CREATION ERROR:", err);
@@ -48,7 +51,16 @@ module.exports = (app, db) => {
 
 	//delete a file
 	function deleteFile(filePath) {
-		fs.unlink(__dirname + filePath);
+		var path = __dirname + filePath.substring(1);
+		if (fs.existsSync(path))
+			fs.unlinkSync(path);
+	}
+
+	// delete video file
+	function deleteVideoFile(filePath) {
+		var path = __dirname + "/serverData/" + filePath;
+		if (fs.existsSync(path))
+			fs.unlinkSync();
 	}
 
 	// login user
@@ -111,6 +123,7 @@ module.exports = (app, db) => {
 	app.get('/checkApproveStatus/:userId', tokenVerification, (req, res) => {
 		var userId = req.params.userId;
 		var sql = "SELECT approve FROM user WHERE userId = ?";
+		console.log("HERE");
 
 		db.query(sql, [userId], (err, result) => {
 			if (err) {
@@ -602,23 +615,44 @@ module.exports = (app, db) => {
 	})
 
 	app.get('/getImage', (req, res) => {
-		console.log(req.query.path);
-		res.sendFile(__dirname + req.query.path.substring(1), (err) => {
-			if (err) {
-				console.log(err);
-			}
-		});
+		var path = __dirname + req.query.path.substring(1);
+		if (fs.existsSync(path)) {
+			res.sendFile(path, (err) => {
+				if (err) {
+					console.log(err);
+				}
+			});
+		} else {
+			res.status(404);
+		}
+	})
+
+	app.get('/getVideo', (req, res) => {
+		var path = __dirname + "/serverData/" + req.query.path;
+		if (fs.existsSync(path)) {
+			res.sendFile(path, (err) => {
+				if (err) {
+					console.log(err);
+				}
+			});
+		} else {
+			res.status(404);
+		}
 	})
 
 	app.get('/getUserImage', (req, res) => {
 		var userId = req.query.userId;
 		var path = "/serverData/user/image_" + userId + ".jpg";
 
-		res.sendFile(__dirname + path, (err) => {
-			if (err) {
-				console.log(err);
-			}
-		});
+		if (fs.existsSync(path)) {
+			res.sendFile(__dirname + path, (err) => {
+				if (err) {
+					console.log(err);
+				}
+			});
+		} else {
+			res.status(404);
+		}
 	})
 
 	// get all comments for post
@@ -712,7 +746,7 @@ module.exports = (app, db) => {
 					deleteFile(result[0].postImage2);
 					deleteFile(result[0].postImage3);
 					deleteFile(result[0].postImage4);
-					deleteFile(result[0].postVideo);
+					deleteVideoFile(result[0].postVideo);
 
 					db.query(deleteSql, [postId], (err, result) => {
 						if (err) {
@@ -725,6 +759,8 @@ module.exports = (app, db) => {
 							})
 						}
 					})
+				} else {
+					res.send(500);
 				}
 			}
 		})
@@ -747,7 +783,7 @@ module.exports = (app, db) => {
 					deleteFile(result[0].productImage2);
 					deleteFile(result[0].productImage3);
 					deleteFile(result[0].productImage4);
-					deleteFile(result[0].productVideo);
+					deleteVideoFile(result[0].productVideo);
 
 					db.query(deleteSql, [productId], (err, result) => {
 						if (err) {
@@ -782,7 +818,7 @@ module.exports = (app, db) => {
 					deleteFile(result[0].offerImage2);
 					deleteFile(result[0].offerImage3);
 					deleteFile(result[0].offerImage4);
-					deleteFile(result[0].offerVideo);
+					deleteVideoFile(result[0].offerVideo);
 
 					db.query(deleteSql, [offerId], (err, result) => {
 						if (err) {
@@ -817,7 +853,7 @@ module.exports = (app, db) => {
 					deleteFile(result[0].serviceImage2);
 					deleteFile(result[0].serviceImage3);
 					deleteFile(result[0].serviceImage4);
-					deleteFile(result[0].serviceVideo);
+					deleteVideoFile(result[0].serviceVideo);
 
 					db.query(deleteSql, [serviceId], (err, result) => {
 						if (err) {
@@ -852,7 +888,7 @@ module.exports = (app, db) => {
 					deleteFile(result[0].adImage2);
 					deleteFile(result[0].adImage3);
 					deleteFile(result[0].adImage4);
-					deleteFile(result[0].adVideo);
+					deleteVideoFile(result[0].adVideo);
 
 					db.query(deleteSql, [adId], (err, result) => {
 						if (err) {
@@ -954,7 +990,7 @@ module.exports = (app, db) => {
 									message: "ACC_PAID",
 									success: true
 								})
-							} 
+							}
 							//account is not paid and is expired
 							else {
 								console.log("ACC EXPIRED");
@@ -977,17 +1013,17 @@ module.exports = (app, db) => {
 		var amountPaid = req.body.amountPaid;
 		var months = req.body.months;
 
-		var sql = "INSERT INTO vendorTransaction(userId, businessId, amountPaid, months, expiryOn) VALUES(?, ?, ?, ?, NOW() + INTERVAL " +  (months * 30) + " DAY)" ;
+		var sql = "INSERT INTO vendorTransaction(userId, businessId, amountPaid, months, expiryOn) VALUES(?, ?, ?, ?, NOW() + INTERVAL " + (months * 30) + " DAY)";
 
 		db.query(sql, [userId, businessId, amountPaid, months], (err, result) => {
 			if (err) {
 				console.log("ACC PAYMENT :: ", err);
 				res.sendStatus(500);
-			}else{
+			} else {
 				console.log("ACC PAY DONE");
 				res.status(200).json({
-					success : true,
-					message : "DONE"
+					success: true,
+					message: "DONE"
 				})
 			}
 		})
