@@ -190,7 +190,7 @@ module.exports = (app, db) => {
 		var categoryId = req.body.categoryId;
 		var subCategoryId = req.body.subCategoryId;
 
-	
+
 		var timeStamp = Math.floor(Date.now() / 1000);
 		var storeImage1 = "./serverData/business/" + userId + "/" + timeStamp + "/image_1.jpg";
 		var storeImage2 = "./serverData/business/" + userId + "/" + timeStamp + "/image_2.jpg";
@@ -659,8 +659,8 @@ module.exports = (app, db) => {
 				res.sendStatus(500);
 			} else {
 				res.status(200).json({
-					success : true,
-					message : "Done"
+					success: true,
+					message: "Done"
 				})
 			}
 		})
@@ -891,7 +891,7 @@ module.exports = (app, db) => {
 		var timestamp = Math.floor(Date.now() / 1000);
 		var contestImage = "./serverData/contest/image/" + contestId + "/" + userId + "/" + timestamp + "/image.jpg";
 
-		if(answerType === 'i')
+		if (answerType === 'i')
 			saveImageToFile(answerImage, contestImage);
 
 		var sql = "INSERT INTO contestAnswers(userId, contestId, answerType, answerImage, answerText, answerVideo) VALUES(?, ?, ?, ?, ?, ?)";
@@ -920,6 +920,84 @@ module.exports = (app, db) => {
 				res.sendStatus(500);
 			} else {
 				res.status(200).json(result[0])
+			}
+		})
+	})
+
+
+	// check account status
+	app.get('/checkVendorAccountStatus/:userId', (req, res) => {
+		var userId = req.params.userId;
+
+		//check if the account is less than 2 months old from now
+		var twoMonthCheckSql = "SELECT * FROM user WHERE userId = ? AND (createdOn + INTERVAL 60 DAY) >= NOW()";
+
+		//transaction check  (select latest transaction and check for expiry)
+		var transactionCheckSql = "SELECT * FROM vendorTransaction WHERE userId = ? AND expiryOn >= NOW() ORDER BY createdOn DESC";
+
+		db.query(twoMonthCheckSql, [userId], (err, result) => {
+			if (err) {
+				console.log("ACC CHECK :: ", err);
+				res.sendStatus(500);
+			} else {
+				//yes it is less than 2 months
+				if (result.length > 0) {
+					console.log("NEW ACC");
+					res.status(200).json({
+						message: "NEW_ACC",
+						success: true
+					})
+				}
+				//account is older than 2 months
+				else {
+					//check in transactions
+					db.query(transactionCheckSql, [userId], (transErr, transResult) => {
+						if (transErr) {
+							console.log("ACC TRN CHECK :: ", transErr);
+							res.sendStatus(500);
+						} else {
+							//account is paid for
+							if (transResult.length > 0) {
+								console.log("ACC PAID");
+								res.status(200).json({
+									message: "ACC_PAID",
+									success: true
+								})
+							} 
+							//account is not paid and is expired
+							else {
+								console.log("ACC EXPIRED");
+								res.status(200).json({
+									message: "ACC_EXPIRED",
+									success: false
+								})
+							}
+						}
+					})
+				}
+			}
+		})
+	})
+
+	// add transaction
+	app.post('/vendorTransaction', (req, res) => {
+		var userId = req.body.userId;
+		var businessId = req.body.businessId;
+		var amountPaid = req.body.amountPaid;
+		var months = req.body.months;
+
+		var sql = "INSERT INTO vendorTransaction(userId, businessId, amountPaid, months, expiryOn) VALUES(?, ?, ?, ?, NOW() + INTERVAL " +  (months * 30) + " DAY)" ;
+
+		db.query(sql, [userId, businessId, amountPaid, months], (err, result) => {
+			if (err) {
+				console.log("ACC PAYMENT :: ", err);
+				res.sendStatus(500);
+			}else{
+				console.log("ACC PAY DONE");
+				res.status(200).json({
+					success : true,
+					message : "DONE"
+				})
 			}
 		})
 	})
