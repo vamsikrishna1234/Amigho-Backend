@@ -58,8 +58,8 @@ function handleDisconnect() {
   con.on('error', function(err) {
     if(err.code === 'PROTOCOL_CONNECTION_LOST') { 
       handleDisconnect();                         
-    } else {                                     
-      throw err;                                  
+    } else {     
+      handleDisconnect();                                         
     }
   });
 
