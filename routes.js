@@ -17,17 +17,8 @@ const transporter = nodemailer.createTransport({
 
 module.exports = (app, db) => {
 	// all endpoints go here
-	app.get('/User', (req, res) => {
-		var sql = "SELECT * FROM user where userId = 10";
-
-		db.query(sql, (err, result) => {
-			if (err) {
-				res.send(500);
-				console.log("ERROR:", err.sqlMessage);
-			} else {
-				res.json(result);
-			}
-		})
+	app.get('/', (req, res) => {
+		res.send("It is working");
 	})
 
 	//generate a refer code
