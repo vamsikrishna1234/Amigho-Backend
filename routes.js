@@ -1028,4 +1028,83 @@ module.exports = (app, db) => {
 			}
 		})
 	})
+
+	// add feedback
+	app.post('/sendFeedback', (req, res) => {
+		var name = req.body.name;
+		var email = req.body.email;
+		var message = req.body.message;
+
+		var sql = "INSERT INTO feedback(name, email, message) VALUES(?, ?, ?)";
+
+		db.query(sql, [name, email, message], (err, result) => {
+			if (err) {
+				console.log("FEEDBACK ERROR :: " + err.sqlMessage);
+				res.sendStatus(500);
+			} else {
+				res.status(200).json({
+					success: true,
+					message: "Done"
+				})
+			}
+		})
+	})
+
+	// get user profile
+	app.get('/getUserProfile/:userId', (req, res) => {
+		var userId = req.params.userId;
+		var sql = "SELECT * FROM user WHERE userId = ?";
+
+		db.query(sql, [userId], (err, result) => {
+			if (err) {
+				console.log("GET USER PROFILE :: " + err.sqlMessage);
+				res.sendStatus(500);
+			} else {
+				if (result.length > 0) {
+					res.status(200).json(result[0]);
+				} else {
+					res.sendStatus(500);
+				}
+			}
+		})
+	})
+
+	// update user profile
+	app.post('/updateUserProfile', (req, res) => {
+		var userId = req.body.userId;
+		var name = req.body.name;
+		var city = req.body.city;
+		var email = req.body.email;
+		var phone = req.body.phone;
+		var profileImage = req.body.profileImage;
+
+		var sql = "UPDATE user SET name = ?, email = ?, city = ?, phone = ?, profileImage = ? WHERE userId = ?";
+		var selectSql = "SELECT * FROM user WHERE userId = ?";
+
+		var timeStamp = Math.floor(Date.now() / 1000);
+		var image = "./serverData/user/" + userId + "/" + timeStamp + "/image_1.jpg";
+
+		saveImageToFile(profileImage, image);
+
+		db.query(sql, [name, email, city, phone, image, userId], (err, result) => {
+			if (err) {
+				console.log("UPDATE USER PROFILE :: " + err.sqlMessage);
+				res.sendStatus(500);
+			} else {
+				db.query(selectSql, [userId], (selErr, selResult) => {
+					if (err) {
+						console.log("SELECTING UPDATED PROFILE :: ", err.sqlMessage);
+						res.sendStatus(500);
+					} else {
+						if (result.length > 0) {
+							res.status(200).json(result[0]);
+						} else {
+							res.sendStatus(500);
+						}
+					}
+				})
+			}
+		})
+
+	})
 }
