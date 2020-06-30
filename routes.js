@@ -89,10 +89,15 @@ module.exports = (app, db) => {
 		var dob = req.body.dob;
 		var address = req.body.address;
 		var city = req.body.city;
+		var refer = req.body.referCode;
 		var notificationToken = req.body.notificationToken;
 		var referCode = genReferCode();
-		var sql = "INSERT INTO user(name, role_id, settings, email, password, phone, address, city, notificationToken, dob, doa, jwtToken, referCode) values(?, 2, null, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
+		console.log("REFER CODE: ::" + refer);
+		var sql = "INSERT INTO user(name, role_id, settings, email, password, phone, address, city, notificationToken, dob, doa, jwtToken, referCode) values(?, 2, null, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+		var selectSql = "SELECT * FROM user WHERE userId = ?";
+
+		// register the current user
 		jwt.sign({ user: email }, privateKey, (err, token) => {
 			if (err) {
 				console.log("TOKEN GEN :: " + err);
@@ -104,16 +109,39 @@ module.exports = (app, db) => {
 						res.status(500).json({ message: err.sqlMessage });
 					} else {
 						var newId = result.insertId;
-						console.log(newId);
-						var sql1 = "SELECT * FROM user WHERE userId = ?";
-						db.query(sql1, [newId], (err1, result1) => {
-							if (err1) {
-								console.log("REGISTER ERR1:: " + err1.sqlMessage);
-								res.status(500).json({ message: err1.sqlMessage });
+						db.query(selectSql, [newId], (selectErr, selectResult) => {
+							if (selectErr) {
+								console.log("REGISTER ERR1:: " + selectErr.sqlMessage);
+								res.status(500).json({ message: selectErr.sqlMessage });
 							} else {
-								res.status(200).json(result1[0]);
+								res.status(200).json(selectResult[0]);
 							}
 						})
+
+						// check the refer code is valid or not, if valid add to 'refers'
+						var referInsert = "INSERT INTO refers(userId, newUserId) VALUES(?, ?)";
+						var referSql = "SELECT * FROM user WHERE referCode = ? LIMIT 1";
+
+						console.log(newId);
+						if (newId !== undefined && refer != undefined) {
+							console.log("CHECKING.....");
+
+							db.query(referSql, [refer], (referErr, referResult) => {
+								if (referErr) {
+									console.log(referErr.sqlMessage);
+								} else {
+									if (referResult.length > 0) {
+										db.query(referInsert, [referResult[0].userId, newId], (insertErr, insertResult) => {
+											if (insertErr) {
+												console.log(insertErr.sqlMessage);
+											} else {
+												console.log("REFERER added");
+											}
+										})
+									}
+								}
+							})
+						}
 					}
 				});
 			}
@@ -1101,8 +1129,6 @@ module.exports = (app, db) => {
 		var sql = "UPDATE user SET name = ?, email = ?, city = ?, phone = ?, profileImage = ? WHERE userId = ?";
 		var selectSql = "SELECT * FROM user WHERE userId = ?";
 
-		var timeStamp = Math.floor(Date.now() / 1000);
-		
 		var image = "./serverData/user/image_" + userId + ".jpg";
 
 		saveImageToFile(profileImage, image);
@@ -1128,5 +1154,37 @@ module.exports = (app, db) => {
 			}
 		})
 
+	})
+
+	app.post('/sendBDayWishes', tokenVerification, (req, res) => {
+		var userId = req.body.userId;
+		var senderId = req.body.senderId;
+		var sql = "INSERT INTO wishes(userId, senderId) VALUES(?, ?)";
+
+		db.query(sql, [userId, senderId], (err, result) => {
+			if(err){
+				console.log("WISHES ERROR :: ", err.sqlMessage);
+				res.sendStatus(500);
+			}else{
+				res.status(200).send({
+					success : true,
+					message : "Done"
+				})
+			}
+		})
+	})
+
+	app.get('/getUserWishes/:userId', tokenVerification, (req, res) => {
+		var userId = req.params.userId;
+		var sql = "SELECT wishes.*, user.name FROM wishes INNER JOIN user ON wishes.senderId = user.userId WHERE wishes.userId = ?";
+
+		db.query(sql ,[userId], (err, result) => {
+			if(err){
+				console.log("WISHES GETTING ERROR :: ", err.sqlMessage);
+				res.sendStatus(500);
+			}else{
+				res.status(200).json(result);
+			}
+		})
 	})
 }
