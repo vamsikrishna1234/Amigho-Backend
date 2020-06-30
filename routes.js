@@ -60,7 +60,7 @@ module.exports = (app, db) => {
 	function deleteVideoFile(filePath) {
 		var path = __dirname + "/serverData/" + filePath;
 		if (fs.existsSync(path))
-			fs.unlinkSync();
+			fs.unlinkSync(path);
 	}
 
 	// login user
@@ -91,7 +91,7 @@ module.exports = (app, db) => {
 		var city = req.body.city;
 		var notificationToken = req.body.notificationToken;
 		var referCode = genReferCode();
-		var sql = "INSERT INTO user(name, email, password, phone, address, city, notificationToken, dob, doa, jwtToken, referCode) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+		var sql = "INSERT INTO user(name, role_id, settings, email, password, phone, address, city, notificationToken, dob, doa, jwtToken, referCode) values(?, 2, null, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
 		jwt.sign({ user: email }, privateKey, (err, token) => {
 			if (err) {
@@ -122,8 +122,8 @@ module.exports = (app, db) => {
 
 	app.get('/checkApproveStatus/:userId', tokenVerification, (req, res) => {
 		var userId = req.params.userId;
+
 		var sql = "SELECT approve FROM user WHERE userId = ?";
-		console.log("HERE");
 
 		db.query(sql, [userId], (err, result) => {
 			if (err) {
@@ -216,9 +216,11 @@ module.exports = (app, db) => {
 	})
 
 	// get todays birthdays
-	app.get('/getBirthDays', tokenVerification, (req, res) => {
-		var sql = "SELECT * FROM user WHERE DATE(dob) = CURDATE() AND approve = 1";
-		db.query(sql, (err, result) => {
+	app.get('/getBirthDays/:city', tokenVerification, (req, res) => {
+		var city = req.params.city;
+
+		var sql = "SELECT * FROM user WHERE DATE(dob) = CURDATE() AND approve = 1 AND city LIKE '%' ? '%'";
+		db.query(sql, [city], (err, result) => {
 			if (err) {
 				console.log("BIRTHDAYS ERROR :: ", err.sqlMessage);
 				res.sendStatus(500);
@@ -243,11 +245,28 @@ module.exports = (app, db) => {
 	})
 
 	// get todays birthdays
-	app.get('/getPosts', tokenVerification, (req, res) => {
-		var sql = "SELECT post.*, user.userId, user.name FROM post INNER JOIN user ON post.userId = user.userId WHERE post.createdOn >= DATE_SUB(NOW(), INTERVAL 15 DAY) AND post.approve = 1";
-		db.query(sql, (err, result) => {
+	app.get('/getPosts/:city', tokenVerification, (req, res) => {
+		var city = req.params.city;
+
+		var sql = "SELECT post.*, user.userId, user.name FROM post INNER JOIN user ON post.userId = user.userId WHERE post.createdOn >= DATE_SUB(NOW(), INTERVAL 15 DAY) AND post.approve = 1 AND user.city LIKE '%' ? '%' ";
+		db.query(sql, [city], (err, result) => {
 			if (err) {
 				console.log("POSTS ERROR :: ", err.sqlMessage);
+				res.sendStatus(500);
+			} else {
+				res.status(200).json(result);
+			}
+		})
+	})
+
+	// get ads
+	app.get('/getAds/:city', (req, res) => {
+		var city = req.params.city;
+
+		var sql = "SELECT * FROM ads INNER JOIN business ON ads.businessId = business.businessId WHERE storeCity LIKE '%' ? '%' AND ads.approve = true";
+		db.query(sql, [city], (err, result) => {
+			if (err) {
+				console.log("ADS ERROR :: ", err.sqlMessage);
 				res.sendStatus(500);
 			} else {
 				res.status(200).json(result);
@@ -642,10 +661,10 @@ module.exports = (app, db) => {
 
 	app.get('/getUserImage', (req, res) => {
 		var userId = req.query.userId;
-		var path = "/serverData/user/image_" + userId + ".jpg";
+		var path = __dirname + "/serverData/user/image_" + userId + ".jpg";
 
 		if (fs.existsSync(path)) {
-			res.sendFile(__dirname + path, (err) => {
+			res.sendFile(path, (err) => {
 				if (err) {
 					console.log(err);
 				}
@@ -953,16 +972,17 @@ module.exports = (app, db) => {
 
 
 	// check account status
-	app.get('/checkVendorAccountStatus/:userId', (req, res) => {
-		var userId = req.params.userId;
+	app.get('/checkVendorAccountStatus/:businessId', (req, res) => {
+		var businessId = req.params.businessId;
 
+		console.log("Checking acc");
 		//check if the account is less than 2 months old from now
-		var twoMonthCheckSql = "SELECT * FROM user WHERE userId = ? AND (createdOn + INTERVAL 60 DAY) >= NOW()";
+		var twoMonthCheckSql = "SELECT * FROM business WHERE businessId = ? AND (createdOn + INTERVAL 60 DAY) >= NOW()";
 
 		//transaction check  (select latest transaction and check for expiry)
-		var transactionCheckSql = "SELECT * FROM vendorTransaction WHERE userId = ? AND expiryOn >= NOW() ORDER BY createdOn DESC";
+		var transactionCheckSql = "SELECT * FROM vendorTransaction WHERE businessId = ? AND expiryOn >= NOW() ORDER BY createdOn DESC";
 
-		db.query(twoMonthCheckSql, [userId], (err, result) => {
+		db.query(twoMonthCheckSql, [businessId], (err, result) => {
 			if (err) {
 				console.log("ACC CHECK :: ", err);
 				res.sendStatus(500);
@@ -978,7 +998,7 @@ module.exports = (app, db) => {
 				//account is older than 2 months
 				else {
 					//check in transactions
-					db.query(transactionCheckSql, [userId], (transErr, transResult) => {
+					db.query(transactionCheckSql, [businessId], (transErr, transResult) => {
 						if (transErr) {
 							console.log("ACC TRN CHECK :: ", transErr);
 							res.sendStatus(500);
@@ -1082,7 +1102,8 @@ module.exports = (app, db) => {
 		var selectSql = "SELECT * FROM user WHERE userId = ?";
 
 		var timeStamp = Math.floor(Date.now() / 1000);
-		var image = "./serverData/user/" + userId + "/" + timeStamp + "/image_1.jpg";
+		
+		var image = "./serverData/user/image_" + userId + ".jpg";
 
 		saveImageToFile(profileImage, image);
 
@@ -1092,12 +1113,13 @@ module.exports = (app, db) => {
 				res.sendStatus(500);
 			} else {
 				db.query(selectSql, [userId], (selErr, selResult) => {
-					if (err) {
+					if (selErr) {
 						console.log("SELECTING UPDATED PROFILE :: ", err.sqlMessage);
 						res.sendStatus(500);
 					} else {
-						if (result.length > 0) {
-							res.status(200).json(result[0]);
+						if (selResult.length > 0) {
+							console.log(selResult.length);
+							res.status(200).json(selResult[0]);
 						} else {
 							res.sendStatus(500);
 						}
