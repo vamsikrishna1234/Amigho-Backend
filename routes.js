@@ -305,7 +305,7 @@ module.exports = (app, db) => {
 	// get users posts
 	app.get('/getUserPosts/:userId', tokenVerification, (req, res) => {
 		var userId = req.params.userId;
-		var sql = "SELECT post.* FROM post WHERE userId = ? ORDER BY post.createdOn DESC";
+		var sql = "SELECT post.*, user.name FROM post INNER JOIN user ON post.userId = user.userId WHERE userId = ? ORDER BY post.createdOn DESC";
 
 		db.query(sql, [userId], (err, result) => {
 			if (err) {
