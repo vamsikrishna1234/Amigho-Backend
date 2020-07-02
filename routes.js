@@ -1187,4 +1187,33 @@ module.exports = (app, db) => {
 			}
 		})
 	})
+
+	// submit contest answer
+	app.post('/submitContestAnswer', tokenVerification, (req ,res) => {
+		var userId = req.body.userId;
+		var contestId = req.body.contestId;
+		var answerType = req.body.answerType;
+		var answerText = req.body.answerText;
+		var answerImage = req.body.answerImage;
+		var answerVideo = req.body.answerVideo;
+
+		var sql = "INSERT INTO contestAnswers(userId, contestId, answerType, answerText, answerImage, answerVideo) VALUES(?, ?, ?, ?, ?, ?)";
+
+		var timestamp = Math.floor(Date.now() / 1000);
+		var finalAnswerImage = "./serverData/contestAnswers/" + contestId + "/" + timestamp + "/image_1.jpg";
+
+		saveImageToFile(answerImage, finalAnswerImage);
+
+		db.query(sql, [userId, contestId, answerType, answerText, answerImage, answerVideo], (err, result) => {
+			if(err){
+				console.log("SUBMIT CONTEST ANSWER :: ", err.sqlMessage);
+				res.sendStatus(500);
+			}else{
+				res.status(200).json({
+					success : true,
+					message : "DONE"
+				})
+			}
+		})
+	})
 }
