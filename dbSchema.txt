@@ -275,7 +275,7 @@ CREATE TRIGGER upd_post_on_new_like AFTER INSERT ON likes
        BEGIN
             DECLARE userIdToUpdate INT;
 
-            SET @userIdToUpdate := (SELECT userId FROM user WHERE postId = NEW.postId);
+            SET @userIdToUpdate := (SELECT userId FROM post WHERE postId = NEW.postId);
 
             UPDATE post SET likes = likes + 1 WHERE postId = NEW.postId;
             UPDATE user SET points = points + 1 WHERE userId = @userIdToUpdate;

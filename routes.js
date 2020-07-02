@@ -276,7 +276,7 @@ module.exports = (app, db) => {
 	app.get('/getPosts/:city', tokenVerification, (req, res) => {
 		var city = req.params.city;
 
-		var sql = "SELECT post.*, user.userId, user.name FROM post INNER JOIN user ON post.userId = user.userId WHERE post.createdOn >= DATE_SUB(NOW(), INTERVAL 15 DAY) AND post.approve = 1 AND user.city LIKE '%' ? '%' ";
+		var sql = "SELECT post.*, user.userId, user.name FROM post INNER JOIN user ON post.userId = user.userId WHERE post.createdOn >= DATE_SUB(NOW(), INTERVAL 15 DAY) AND post.approve = 1 AND user.city LIKE '%' ? '%' ORDER BY post.createdOn DESC";
 		db.query(sql, [city], (err, result) => {
 			if (err) {
 				console.log("POSTS ERROR :: ", err.sqlMessage);
@@ -291,7 +291,7 @@ module.exports = (app, db) => {
 	app.get('/getAds/:city', tokenVerification, (req, res) => {
 		var city = req.params.city;
 
-		var sql = "SELECT * FROM ads INNER JOIN business ON ads.businessId = business.businessId WHERE storeCity LIKE '%' ? '%' AND ads.approve = true";
+		var sql = "SELECT * FROM ads INNER JOIN business ON ads.businessId = business.businessId WHERE storeCity LIKE '%' ? '%' AND ads.approve = true ORDER BY ads.createdOn DESC";
 		db.query(sql, [city], (err, result) => {
 			if (err) {
 				console.log("ADS ERROR :: ", err.sqlMessage);
@@ -305,7 +305,7 @@ module.exports = (app, db) => {
 	// get users posts
 	app.get('/getUserPosts/:userId', tokenVerification, (req, res) => {
 		var userId = req.params.userId;
-		var sql = "SELECT post.* FROM post WHERE userId = ?";
+		var sql = "SELECT post.* FROM post WHERE userId = ? ORDER BY post.createdOn DESC";
 
 		db.query(sql, [userId], (err, result) => {
 			if (err) {
@@ -320,7 +320,7 @@ module.exports = (app, db) => {
 	// get business offers by businessId
 	app.get('/getUserOffers/:businessId', tokenVerification, (req, res) => {
 		var businessId = req.params.businessId;
-		var sql = "SELECT * FROM offers WHERE businessId = ?";
+		var sql = "SELECT * FROM offers WHERE businessId = ? ORDER BY offers.createdOn DESC";
 
 		db.query(sql, [businessId], (err, result) => {
 			if (err) {
@@ -335,7 +335,7 @@ module.exports = (app, db) => {
 	// get business services by businessId
 	app.get('/getUserServices/:businessId', tokenVerification, (req, res) => {
 		var businessId = req.params.businessId;
-		var sql = "SELECT * FROM services WHERE businessId = ?";
+		var sql = "SELECT * FROM services WHERE businessId = ? ORDER BY services.createdOn DESC";
 
 		db.query(sql, [businessId], (err, result) => {
 			if (err) {
@@ -350,7 +350,7 @@ module.exports = (app, db) => {
 	// get business ads by businessId
 	app.get('/getUserAds/:businessId', tokenVerification, (req, res) => {
 		var businessId = req.params.businessId;
-		var sql = "SELECT * FROM ads WHERE businessId = ?";
+		var sql = "SELECT * FROM ads WHERE businessId = ? ORDER BY ads.createdOn DESC";
 
 		db.query(sql, [businessId], (err, result) => {
 			if (err) {
@@ -365,7 +365,7 @@ module.exports = (app, db) => {
 	// get business products by businessId
 	app.get('/getUserProducts/:businessId', tokenVerification, (req, res) => {
 		var businessId = req.params.businessId;
-		var sql = "SELECT * FROM product WHERE businessId = ?";
+		var sql = "SELECT * FROM product WHERE businessId = ? ORDER BY product.createdOn";
 
 		db.query(sql, [businessId], (err, result) => {
 			if (err) {
@@ -380,7 +380,7 @@ module.exports = (app, db) => {
 	// get business reviews by businessId
 	app.get('/getBusinessReviews/:businessId', tokenVerification, (req, res) => {
 		var businessId = req.params.businessId;
-		var sql = "SELECT reviews.*, user.name FROM reviews INNER JOIN user ON reviews.userId = user.userId WHERE businessId = ?";
+		var sql = "SELECT reviews.*, user.name FROM reviews INNER JOIN user ON reviews.userId = user.userId WHERE businessId = ? ORDER BY reviews.createdOn DESC";
 
 		db.query(sql, [businessId], (err, result) => {
 			if (err) {
@@ -395,7 +395,7 @@ module.exports = (app, db) => {
 	// get business viewers by businessId
 	app.get('/getBusinessViewers/:businessId', tokenVerification, (req, res) => {
 		var businessId = req.params.businessId;
-		var sql = "SELECT user.* FROM user INNER JOIN viewers ON user.userId = viewers.userId WHERE businessId = ?";
+		var sql = "SELECT user.* FROM user INNER JOIN viewers ON user.userId = viewers.userId WHERE businessId = ? ORDER BY user.createdOn DESC";
 
 		db.query(sql, [businessId], (err, result) => {
 			if (err) {
@@ -705,7 +705,7 @@ module.exports = (app, db) => {
 	// get all comments for post
 	app.get('/getAllComments/:postId', tokenVerification, (req, res) => {
 		var postId = req.params.postId;
-		var sql = "SELECT * FROM comments WHERE postId = ?";
+		var sql = "SELECT * FROM comments WHERE postId = ? ORDER BY comments.createdOn DESC";
 
 		db.query(sql, [postId], (err, result) => {
 			if (err) {

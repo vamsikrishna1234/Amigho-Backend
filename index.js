@@ -68,7 +68,7 @@ app.use(fileUpload({
 
 require('./routes')(app, con);
 
-const port = process.env.PORT || 5000
+const port = process.env.PORT || 8000
 app.listen(port, () => {
   console.log('We are live on port = ' + port);
 });
