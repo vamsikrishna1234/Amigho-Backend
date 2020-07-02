@@ -288,7 +288,7 @@ module.exports = (app, db) => {
 	})
 
 	// get ads
-	app.get('/getAds/:city', (req, res) => {
+	app.get('/getAds/:city', tokenVerification, (req, res) => {
 		var city = req.params.city;
 
 		var sql = "SELECT * FROM ads INNER JOIN business ON ads.businessId = business.businessId WHERE storeCity LIKE '%' ? '%' AND ads.approve = true";
@@ -303,7 +303,7 @@ module.exports = (app, db) => {
 	})
 
 	// get users posts
-	app.get('/getUserPosts/:userId', (req, res) => {
+	app.get('/getUserPosts/:userId', tokenVerification, (req, res) => {
 		var userId = req.params.userId;
 		var sql = "SELECT post.* FROM post WHERE userId = ?";
 
@@ -318,7 +318,7 @@ module.exports = (app, db) => {
 	})
 
 	// get business offers by businessId
-	app.get('/getUserOffers/:businessId', (req, res) => {
+	app.get('/getUserOffers/:businessId', tokenVerification, (req, res) => {
 		var businessId = req.params.businessId;
 		var sql = "SELECT * FROM offers WHERE businessId = ?";
 
@@ -333,7 +333,7 @@ module.exports = (app, db) => {
 	})
 
 	// get business services by businessId
-	app.get('/getUserServices/:businessId', (req, res) => {
+	app.get('/getUserServices/:businessId', tokenVerification, (req, res) => {
 		var businessId = req.params.businessId;
 		var sql = "SELECT * FROM services WHERE businessId = ?";
 
@@ -348,7 +348,7 @@ module.exports = (app, db) => {
 	})
 
 	// get business ads by businessId
-	app.get('/getUserAds/:businessId', (req, res) => {
+	app.get('/getUserAds/:businessId', tokenVerification, (req, res) => {
 		var businessId = req.params.businessId;
 		var sql = "SELECT * FROM ads WHERE businessId = ?";
 
@@ -363,7 +363,7 @@ module.exports = (app, db) => {
 	})
 
 	// get business products by businessId
-	app.get('/getUserProducts/:businessId', (req, res) => {
+	app.get('/getUserProducts/:businessId', tokenVerification, (req, res) => {
 		var businessId = req.params.businessId;
 		var sql = "SELECT * FROM product WHERE businessId = ?";
 
@@ -378,7 +378,7 @@ module.exports = (app, db) => {
 	})
 
 	// get business reviews by businessId
-	app.get('/getBusinessReviews/:businessId', (req, res) => {
+	app.get('/getBusinessReviews/:businessId', tokenVerification, (req, res) => {
 		var businessId = req.params.businessId;
 		var sql = "SELECT reviews.*, user.name FROM reviews INNER JOIN user ON reviews.userId = user.userId WHERE businessId = ?";
 
@@ -393,7 +393,7 @@ module.exports = (app, db) => {
 	})
 
 	// get business viewers by businessId
-	app.get('/getBusinessViewers/:businessId', (req, res) => {
+	app.get('/getBusinessViewers/:businessId', tokenVerification, (req, res) => {
 		var businessId = req.params.businessId;
 		var sql = "SELECT user.* FROM user INNER JOIN viewers ON user.userId = viewers.userId WHERE businessId = ?";
 
@@ -408,7 +408,7 @@ module.exports = (app, db) => {
 	})
 
 	// get business profile
-	app.get('/getBusinessProfile/:businessId', (req, res) => {
+	app.get('/getBusinessProfile/:businessId', tokenVerification, (req, res) => {
 		var businessId = req.params.businessId;
 		var sql = "SELECT * FROM business WHERE businessId = ?";
 
@@ -445,7 +445,7 @@ module.exports = (app, db) => {
 	})
 
 	// create new post
-	app.post('/createNewPost', (req, res) => {
+	app.post('/createNewPost', tokenVerification, (req, res) => {
 		var userId = req.body.userId;
 		var postDesc = req.body.postDesc;
 		var postImage1 = req.body.postImage1;
@@ -481,7 +481,7 @@ module.exports = (app, db) => {
 	})
 
 	// create new offer
-	app.post('/createNewOffer', (req, res) => {
+	app.post('/createNewOffer', tokenVerification, (req, res) => {
 		var businessId = req.body.businessId;
 		var productId = req.body.productId;
 		var offerName = req.body.offerName;
@@ -520,7 +520,7 @@ module.exports = (app, db) => {
 	})
 
 	// create new ad
-	app.post('/createNewAd', (req, res) => {
+	app.post('/createNewAd', tokenVerification, (req, res) => {
 		var businessId = req.body.businessId;
 		var adName = req.body.adName;
 		var adDesc = req.body.adDesc;
@@ -558,7 +558,7 @@ module.exports = (app, db) => {
 	})
 
 	// create new service
-	app.post('/createNewService', (req, res) => {
+	app.post('/createNewService', tokenVerification, (req, res) => {
 		var businessId = req.body.businessId;
 		var categoryId = req.body.categoryId;
 		var subCategoryId = req.body.subCategoryId;
@@ -599,7 +599,7 @@ module.exports = (app, db) => {
 
 
 	// create new product
-	app.post('/createNewProduct', (req, res) => {
+	app.post('/createNewProduct', tokenVerification, (req, res) => {
 		var businessId = req.body.businessId;
 		var categoryId = req.body.categoryId;
 		var subCategoryId = req.body.subCategoryId;
@@ -640,7 +640,7 @@ module.exports = (app, db) => {
 
 	})
 
-	app.post('/uploadUserImage', (req, res) => {
+	app.post('/uploadUserImage', tokenVerification, (req, res) => {
 		var profileImage = req.body.profileImage;
 		var userId = req.body.userId;
 
@@ -703,7 +703,7 @@ module.exports = (app, db) => {
 	})
 
 	// get all comments for post
-	app.get('/getAllComments/:postId', (req, res) => {
+	app.get('/getAllComments/:postId', tokenVerification, (req, res) => {
 		var postId = req.params.postId;
 		var sql = "SELECT * FROM comments WHERE postId = ?";
 
@@ -718,7 +718,7 @@ module.exports = (app, db) => {
 	})
 
 	// post comment
-	app.post('/postComment', (req, res) => {
+	app.post('/postComment', tokenVerification, (req, res) => {
 		var postId = req.body.postId;
 		var userId = req.body.userId;
 		var text = req.body.text;
@@ -739,7 +739,7 @@ module.exports = (app, db) => {
 	})
 
 	// add like
-	app.post('/likePost', (req, res) => {
+	app.post('/likePost', tokenVerification, (req, res) => {
 		var userId = req.body.userId;
 		var postId = req.body.postId;
 		var sql = "INSERT INTO likes(postId, userId) VALUES(?, ?)";
@@ -758,7 +758,7 @@ module.exports = (app, db) => {
 	})
 
 	// add view to post
-	app.post('/addView', (req, res) => {
+	app.post('/addView', tokenVerification, (req, res) => {
 		var userId = req.body.userId;
 		var postId = req.body.postId;
 		var sql = "INSERT INTO views(postId, userId) VALUES(?, ?)";
@@ -777,7 +777,7 @@ module.exports = (app, db) => {
 	})
 
 	// delete post
-	app.get('/deletePost/:postId', (req, res) => {
+	app.get('/deletePost/:postId', tokenVerification, (req, res) => {
 		var postId = req.params.postId;
 		var deleteSql = "DELETE FROM post WHERE postId = ?";
 		var selectSql = "SELECT * FROM post WHERE postId = ?";
@@ -814,7 +814,7 @@ module.exports = (app, db) => {
 	})
 
 	// delete prooduct
-	app.get('/deleteProduct/:productId', (req, res) => {
+	app.get('/deleteProduct/:productId', tokenVerification, (req, res) => {
 		var productId = req.params.productId;
 		var deleteSql = "DELETE FROM product WHERE productId = ?";
 		var selectSql = "SELECT * FROM product WHERE productId = ?";
@@ -849,7 +849,7 @@ module.exports = (app, db) => {
 	})
 
 	// delete offer
-	app.get('/deleteOffer/:offerId', (req, res) => {
+	app.get('/deleteOffer/:offerId', tokenVerification, (req, res) => {
 		var offerId = req.params.offerId;
 		var deleteSql = "DELETE FROM offers WHERE offerId = ?";
 		var selectSql = "SELECT * FROM offers WHERE offerId = ?";
@@ -884,7 +884,7 @@ module.exports = (app, db) => {
 	})
 
 	// delete service
-	app.get('/deleteService/:serviceId', (req, res) => {
+	app.get('/deleteService/:serviceId', tokenVerification, (req, res) => {
 		var serviceId = req.params.serviceId;
 		var deleteSql = "DELETE FROM services WHERE serviceId = ?";
 		var selectSql = "SELECT * FROM services WHERE serviceId = ?";
@@ -919,7 +919,7 @@ module.exports = (app, db) => {
 	})
 
 	// delete ad
-	app.get('/deleteAd/:adId', (req, res) => {
+	app.get('/deleteAd/:adId', tokenVerification, (req, res) => {
 		var adId = req.params.adId;
 		var deleteSql = "DELETE FROM ads WHERE adId = ?";
 		var selectSql = "SELECT * FROM ads WHERE adId = ?";
@@ -954,7 +954,7 @@ module.exports = (app, db) => {
 	})
 
 	// add contest answer
-	app.post('/addContestAnswer', (req, res) => {
+	app.post('/addContestAnswer', tokenVerification, (req, res) => {
 		var userId = req.body.userId;
 		var contestId = req.body.contestId;
 		var answerType = req.bodu.answerType;
@@ -984,7 +984,7 @@ module.exports = (app, db) => {
 	})
 
 	// get category from cat id
-	app.get('/getCategory/:categoryId', (req, res) => {
+	app.get('/getCategory/:categoryId', tokenVerification, (req, res) => {
 		var categoryId = req.params.categoryId;
 		var sql = "SELECT * FROM category WHERE categoryId = ?";
 
@@ -1000,7 +1000,7 @@ module.exports = (app, db) => {
 
 
 	// check account status
-	app.get('/checkVendorAccountStatus/:businessId', (req, res) => {
+	app.get('/checkVendorAccountStatus/:businessId', tokenVerification, (req, res) => {
 		var businessId = req.params.businessId;
 
 		console.log("Checking acc");
@@ -1055,7 +1055,7 @@ module.exports = (app, db) => {
 	})
 
 	// add transaction
-	app.post('/vendorTransaction', (req, res) => {
+	app.post('/vendorTransaction', tokenVerification, (req, res) => {
 		var userId = req.body.userId;
 		var businessId = req.body.businessId;
 		var amountPaid = req.body.amountPaid;
@@ -1078,7 +1078,7 @@ module.exports = (app, db) => {
 	})
 
 	// add feedback
-	app.post('/sendFeedback', (req, res) => {
+	app.post('/sendFeedback', tokenVerification, (req, res) => {
 		var name = req.body.name;
 		var email = req.body.email;
 		var message = req.body.message;
@@ -1099,7 +1099,7 @@ module.exports = (app, db) => {
 	})
 
 	// get user profile
-	app.get('/getUserProfile/:userId', (req, res) => {
+	app.get('/getUserProfile/:userId', tokenVerification, (req, res) => {
 		var userId = req.params.userId;
 		var sql = "SELECT * FROM user WHERE userId = ?";
 
@@ -1118,7 +1118,7 @@ module.exports = (app, db) => {
 	})
 
 	// update user profile
-	app.post('/updateUserProfile', (req, res) => {
+	app.post('/updateUserProfile', tokenVerification, (req, res) => {
 		var userId = req.body.userId;
 		var name = req.body.name;
 		var city = req.body.city;
