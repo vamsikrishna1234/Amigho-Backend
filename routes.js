@@ -305,7 +305,7 @@ module.exports = (app, db) => {
 	// get users posts
 	app.get('/getUserPosts/:userId', tokenVerification, (req, res) => {
 		var userId = req.params.userId;
-		var sql = "SELECT post.*, user.name FROM post INNER JOIN user ON post.userId = user.userId WHERE userId = ? ORDER BY post.createdOn DESC";
+		var sql = "SELECT post.*, user.name FROM post INNER JOIN user ON post.userId = user.userId WHERE post.userId = ? ORDER BY post.createdOn DESC";
 
 		db.query(sql, [userId], (err, result) => {
 			if (err) {
@@ -454,16 +454,29 @@ module.exports = (app, db) => {
 		var postImage4 = req.body.postImage4;
 		var postVideo = req.body.postVideo;
 
-		var timestamp = Math.floor(Date.now() / 1000);
-		var finalPostImage1 = "./serverData/posts/" + userId + "/" + timestamp + "/image_1.jpg";
-		var finalPostImage2 = "./serverData/posts/" + userId + "/" + timestamp + "/image_2.jpg";
-		var finalPostImage3 = "./serverData/posts/" + userId + "/" + timestamp + "/image_3.jpg";
-		var finalPostImage4 = "./serverData/posts/" + userId + "/" + timestamp + "/image_4.jpg";
+		var finalPostImage1;
+		var finalPostImage2;
+		var finalPostImage3;
+		var finalPostImage4;
 
-		saveImageToFile(postImage1, finalPostImage1);
-		saveImageToFile(postImage2, finalPostImage2);
-		saveImageToFile(postImage3, finalPostImage3);
-		saveImageToFile(postImage4, finalPostImage4);
+		var timestamp = Math.floor(Date.now() / 1000);
+
+		if(postImage1 !== undefined){
+			finalPostImage1 = "./serverData/posts/" + userId + "/" + timestamp + "/image_1.jpg";
+			saveImageToFile(postImage1, finalPostImage1);
+		}
+		if(postImage2 !== undefined){
+			finalPostImage2 = "./serverData/posts/" + userId + "/" + timestamp + "/image_2.jpg";
+			saveImageToFile(postImage2, finalPostImage2);
+		}
+		if(postImage3 !== undefined){
+			finalPostImage3 = "./serverData/posts/" + userId + "/" + timestamp + "/image_3.jpg";
+			saveImageToFile(postImage3, finalPostImage3);
+		}
+		if(postImage4 !== undefined){
+			finalPostImage4 = "./serverData/posts/" + userId + "/" + timestamp + "/image_4.jpg";
+			saveImageToFile(postImage4, finalPostImage4);
+		}
 
 		var sql = "INSERT INTO post(userId, postDesc, postImage1, postImage2, postImage3, postImage4, postVideo) VALUES(?, ?, ?, ?, ?, ?, ?)";
 
@@ -746,7 +759,6 @@ module.exports = (app, db) => {
 
 		db.query(sql, [postId, userId], (err, result) => {
 			if (err) {
-				console.log("LIKE POST :: ", err);
 				res.sendStatus(500);
 			} else {
 				res.status(200).json({
@@ -765,7 +777,6 @@ module.exports = (app, db) => {
 
 		db.query(sql, [postId, userId], (err, result) => {
 			if (err) {
-				console.log("VIEW TO POST :: ", err);
 				res.sendStatus(500);
 			} else {
 				res.status(200).json({
@@ -1003,7 +1014,6 @@ module.exports = (app, db) => {
 	app.get('/checkVendorAccountStatus/:businessId', tokenVerification, (req, res) => {
 		var businessId = req.params.businessId;
 
-		console.log("Checking acc");
 		//check if the account is less than 2 months old from now
 		var twoMonthCheckSql = "SELECT * FROM business WHERE businessId = ? AND (createdOn + INTERVAL 60 DAY) >= NOW()";
 
@@ -1017,7 +1027,6 @@ module.exports = (app, db) => {
 			} else {
 				//yes it is less than 2 months
 				if (result.length > 0) {
-					console.log("NEW ACC");
 					res.status(200).json({
 						message: "NEW_ACC",
 						success: true
@@ -1033,7 +1042,6 @@ module.exports = (app, db) => {
 						} else {
 							//account is paid for
 							if (transResult.length > 0) {
-								console.log("ACC PAID");
 								res.status(200).json({
 									message: "ACC_PAID",
 									success: true
@@ -1041,7 +1049,6 @@ module.exports = (app, db) => {
 							}
 							//account is not paid and is expired
 							else {
-								console.log("ACC EXPIRED");
 								res.status(200).json({
 									message: "ACC_EXPIRED",
 									success: false
@@ -1213,6 +1220,110 @@ module.exports = (app, db) => {
 					success : true,
 					message : "DONE"
 				})
+			}
+		})
+	})
+
+	// customer app apis
+	// http://192.168.43.248:8000/getBusinesses?city=Shrirampur&limit=20&category=-1&subcategory=-1
+	app.get('/getBusinesses', tokenVerification, (req, res) => {
+		var city = req.query.city;
+		var limit = parseInt(req.query.limit);
+		var category = parseInt(req.query.category);
+		var subcategory = parseInt(req.query.subcategory);
+		var sql;
+		var params;
+
+		if(category === -1 && subcategory === -1){
+			sql = "SELECT business.*, user.name FROM business INNER JOIN user ON business.userId = user.userId WHERE storeCity = ? AND business.approve = TRUE ORDER BY business.createdOn DESC  LIMIT ?";
+			params = [city, limit];
+		}
+		else{
+			sql = "SELECT business.*, user.name FROM business INNER JOIN user ON business.userId = user.userId WHERE storeCity = ? AND categoryId = ? AND subCategoryId = ? AND business.approve = TRUE  ORDER BY business.createdOn DESC  LIMIT ? ";
+			params = [city, category, subcategory, limit]
+		}
+
+
+		db.query(sql, params, (err, result) => {
+			if(err){
+				console.log("BUSINESS GET CUS : ", err.sqlMessage);
+				res.sendStatus(500);
+			}else{
+				res.status(200).json(result);
+			}
+		})
+	})
+
+	// get offers filter
+	// http://192.168.43.248:8000/getOffers?city=Shrirampur&limit=20
+	app.get('/getOffers', tokenVerification, (req, res) => {
+		var city = req.query.city;
+		var limit = parseInt(req.query.limit);
+
+		var sql = "SELECT business.storeName, business.image1, offers.* FROM offers INNER JOIN business ON business.businessId = offers.businessId WHERE business.storeCity = ? AND offers.approve = TRUE ORDER BY offers.createdOn DESC LIMIT ?";
+		db.query(sql, [city, limit], (err, result) => {
+			if(err){
+				console.log("OFFER GET CUS : ", err.sqlMessage);
+				res.sendStatus(500);
+			}else{
+				res.status(200).json(result);
+			}
+		})
+	})
+
+	// get services filter
+	// http://192.168.43.248:8000/getServices?city=Shrirampur&limit=20&category=-1&subcategory=-1&pricelimit=10000
+	app.get('/getServices', tokenVerification, (req, res) => {
+		var city = req.query.city;
+		var limit = parseInt(req.query.limit);
+		var category = parseInt(req.query.category);
+		var subcategory = parseInt(req.query.subcategory);
+		var pricelimit = parseInt(req.query.pricelimit);
+		var sql;
+		var params;
+
+		if(category === -1 && subcategory === -1){
+			sql = "SELECT business.storeName, business.image1, services.* FROM services INNER JOIN business ON services.businessId = business.businessId WHERE business.storeCity = ? AND services.servicePrice < ? AND services.approve = TRUE ORDER BY services.createdOn DESC LIMIT ?";
+			params = [city, pricelimit, limit];
+		}else{
+			sql = "SELECT business.storeName, business.image1, services.* FROM services INNER JOIN business ON services.businessId = business.businessId WHERE business.storeCity = ? AND categoryId = ? AND subCategoryId = ? AND services.servicePrice < ? AND services.approve = TRUE ORDER BY services.createdOn DESC LIMIT ?";
+			params = [city, category, subcategory, pricelimit, limit];
+		}
+
+		db.query(sql, params, (err, result) => {
+			if(err){
+				console.log("SERVICES GET CUS : ", err.sqlMessage);
+				res.sendStatus(500);
+			}else{
+				res.status(200).json(result);
+			}
+		})
+	})
+
+	// get products
+	app.get('/getProducts', tokenVerification, (req, res) => {
+		var city = req.query.city;
+		var limit = parseInt(req.query.limit);
+		var category = parseInt(req.query.category);
+		var subcategory = parseInt(req.query.subcategory);
+		var pricelimit = parseInt(req.query.pricelimit);
+		var sql;
+		var params;
+
+		if(category === -1 && subcategory === -1){
+			sql = "SELECT business.storeName, business.image1, product.* FROM product INNER JOIN business ON product.businessId = business.businessId WHERE business.storeCity = ? AND product.productPrice < ? AND product.approve = TRUE ORDER BY product.createdOn DESC LIMIT ?";
+			params = [city, pricelimit, limit];
+		}else{
+			sql = "SELECT business.storeName, business.image1, product.* FROM product INNER JOIN business ON product.businessId = business.businessId WHERE business.storeCity = ? AND categoryId = ? AND subCategoryId = ? AND product.productPrice < ? AND product.approve = TRUE ORDER BY product.createdOn DESC LIMIT ?";
+			params = [city, category, subcategory, pricelimit, limit];
+		}
+
+		db.query(sql, params, (err, result) => {
+			if(err){
+				console.log("PRODUCTS GET CUS : ", err.sqlMessage);
+				res.sendStatus(500);
+			}else{
+				res.status(200).json(result);
 			}
 		})
 	})
