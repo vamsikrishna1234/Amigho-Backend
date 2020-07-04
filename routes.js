@@ -461,19 +461,19 @@ module.exports = (app, db) => {
 
 		var timestamp = Math.floor(Date.now() / 1000);
 
-		if(postImage1 !== undefined){
+		if (postImage1 !== undefined) {
 			finalPostImage1 = "./serverData/posts/" + userId + "/" + timestamp + "/image_1.jpg";
 			saveImageToFile(postImage1, finalPostImage1);
 		}
-		if(postImage2 !== undefined){
+		if (postImage2 !== undefined) {
 			finalPostImage2 = "./serverData/posts/" + userId + "/" + timestamp + "/image_2.jpg";
 			saveImageToFile(postImage2, finalPostImage2);
 		}
-		if(postImage3 !== undefined){
+		if (postImage3 !== undefined) {
 			finalPostImage3 = "./serverData/posts/" + userId + "/" + timestamp + "/image_3.jpg";
 			saveImageToFile(postImage3, finalPostImage3);
 		}
-		if(postImage4 !== undefined){
+		if (postImage4 !== undefined) {
 			finalPostImage4 = "./serverData/posts/" + userId + "/" + timestamp + "/image_4.jpg";
 			saveImageToFile(postImage4, finalPostImage4);
 		}
@@ -1169,13 +1169,13 @@ module.exports = (app, db) => {
 		var sql = "INSERT INTO wishes(userId, senderId) VALUES(?, ?)";
 
 		db.query(sql, [userId, senderId], (err, result) => {
-			if(err){
+			if (err) {
 				console.log("WISHES ERROR :: ", err.sqlMessage);
 				res.sendStatus(500);
-			}else{
+			} else {
 				res.status(200).send({
-					success : true,
-					message : "Done"
+					success: true,
+					message: "Done"
 				})
 			}
 		})
@@ -1185,18 +1185,18 @@ module.exports = (app, db) => {
 		var userId = req.params.userId;
 		var sql = "SELECT wishes.*, user.name FROM wishes INNER JOIN user ON wishes.senderId = user.userId WHERE wishes.userId = ?";
 
-		db.query(sql ,[userId], (err, result) => {
-			if(err){
+		db.query(sql, [userId], (err, result) => {
+			if (err) {
 				console.log("WISHES GETTING ERROR :: ", err.sqlMessage);
 				res.sendStatus(500);
-			}else{
+			} else {
 				res.status(200).json(result);
 			}
 		})
 	})
 
 	// submit contest answer
-	app.post('/submitContestAnswer', tokenVerification, (req ,res) => {
+	app.post('/submitContestAnswer', tokenVerification, (req, res) => {
 		var userId = req.body.userId;
 		var contestId = req.body.contestId;
 		var answerType = req.body.answerType;
@@ -1212,13 +1212,13 @@ module.exports = (app, db) => {
 		saveImageToFile(answerImage, finalAnswerImage);
 
 		db.query(sql, [userId, contestId, answerType, answerText, answerImage, answerVideo], (err, result) => {
-			if(err){
+			if (err) {
 				console.log("SUBMIT CONTEST ANSWER :: ", err.sqlMessage);
 				res.sendStatus(500);
-			}else{
+			} else {
 				res.status(200).json({
-					success : true,
-					message : "DONE"
+					success: true,
+					message: "DONE"
 				})
 			}
 		})
@@ -1234,21 +1234,23 @@ module.exports = (app, db) => {
 		var sql;
 		var params;
 
-		if(category === -1 && subcategory === -1){
+		if (category === -1 && subcategory === -1) {
 			sql = "SELECT business.*, user.name FROM business INNER JOIN user ON business.userId = user.userId WHERE storeCity = ? AND business.approve = TRUE ORDER BY business.createdOn DESC  LIMIT ?";
 			params = [city, limit];
-		}
-		else{
+		} else if(subcategory === 0){
+			sql = "SELECT business.*, user.name FROM business INNER JOIN user ON business.userId = user.userId WHERE storeCity = ? AND categoryId = ? AND business.approve = TRUE  ORDER BY business.createdOn DESC  LIMIT ? ";
+			params = [city, category, limit]
+		} else {
 			sql = "SELECT business.*, user.name FROM business INNER JOIN user ON business.userId = user.userId WHERE storeCity = ? AND categoryId = ? AND subCategoryId = ? AND business.approve = TRUE  ORDER BY business.createdOn DESC  LIMIT ? ";
 			params = [city, category, subcategory, limit]
 		}
 
 
 		db.query(sql, params, (err, result) => {
-			if(err){
+			if (err) {
 				console.log("BUSINESS GET CUS : ", err.sqlMessage);
 				res.sendStatus(500);
-			}else{
+			} else {
 				res.status(200).json(result);
 			}
 		})
@@ -1262,10 +1264,10 @@ module.exports = (app, db) => {
 
 		var sql = "SELECT business.storeName, business.image1, offers.* FROM offers INNER JOIN business ON business.businessId = offers.businessId WHERE business.storeCity = ? AND offers.approve = TRUE ORDER BY offers.createdOn DESC LIMIT ?";
 		db.query(sql, [city, limit], (err, result) => {
-			if(err){
+			if (err) {
 				console.log("OFFER GET CUS : ", err.sqlMessage);
 				res.sendStatus(500);
-			}else{
+			} else {
 				res.status(200).json(result);
 			}
 		})
@@ -1282,19 +1284,22 @@ module.exports = (app, db) => {
 		var sql;
 		var params;
 
-		if(category === -1 && subcategory === -1){
+		if (category === -1 && subcategory === -1) {
 			sql = "SELECT business.storeName, business.image1, services.* FROM services INNER JOIN business ON services.businessId = business.businessId WHERE business.storeCity = ? AND services.servicePrice < ? AND services.approve = TRUE ORDER BY services.createdOn DESC LIMIT ?";
 			params = [city, pricelimit, limit];
-		}else{
-			sql = "SELECT business.storeName, business.image1, services.* FROM services INNER JOIN business ON services.businessId = business.businessId WHERE business.storeCity = ? AND categoryId = ? AND subCategoryId = ? AND services.servicePrice < ? AND services.approve = TRUE ORDER BY services.createdOn DESC LIMIT ?";
+		} else if(subcategory === 0){
+			sql = "SELECT business.storeName, business.image1, services.* FROM services INNER JOIN business ON services.businessId = business.businessId WHERE business.storeCity = ? AND services.categoryId = ? AND services.servicePrice < ? AND services.approve = TRUE ORDER BY services.createdOn DESC LIMIT ?";
+			params = [city, category, pricelimit, limit];
+		} else {
+			sql = "SELECT business.storeName, business.image1, services.* FROM services INNER JOIN business ON services.businessId = business.businessId WHERE business.storeCity = ? AND services.categoryId = ? AND services.subCategoryId = ? AND services.servicePrice < ? AND services.approve = TRUE ORDER BY services.createdOn DESC LIMIT ?";
 			params = [city, category, subcategory, pricelimit, limit];
 		}
 
 		db.query(sql, params, (err, result) => {
-			if(err){
+			if (err) {
 				console.log("SERVICES GET CUS : ", err.sqlMessage);
 				res.sendStatus(500);
-			}else{
+			} else {
 				res.status(200).json(result);
 			}
 		})
@@ -1310,19 +1315,87 @@ module.exports = (app, db) => {
 		var sql;
 		var params;
 
-		if(category === -1 && subcategory === -1){
+		if (category === -1 && subcategory === -1) {
 			sql = "SELECT business.storeName, business.image1, product.* FROM product INNER JOIN business ON product.businessId = business.businessId WHERE business.storeCity = ? AND product.productPrice < ? AND product.approve = TRUE ORDER BY product.createdOn DESC LIMIT ?";
 			params = [city, pricelimit, limit];
-		}else{
-			sql = "SELECT business.storeName, business.image1, product.* FROM product INNER JOIN business ON product.businessId = business.businessId WHERE business.storeCity = ? AND categoryId = ? AND subCategoryId = ? AND product.productPrice < ? AND product.approve = TRUE ORDER BY product.createdOn DESC LIMIT ?";
+		}else if(subcategory === 0){
+			sql = "SELECT business.storeName, business.image1, product.* FROM product INNER JOIN business ON product.businessId = business.businessId WHERE business.storeCity = ? AND product.categoryId = ? AND product.productPrice < ? AND product.approve = TRUE ORDER BY product.createdOn DESC LIMIT ?";
+			params = [city, category, pricelimit, limit];
+		} 
+		else {
+			sql = "SELECT business.storeName, business.image1, product.* FROM product INNER JOIN business ON product.businessId = business.businessId WHERE business.storeCity = ? AND product.categoryId = ? AND product.subCategoryId = ? AND product.productPrice < ? AND product.approve = TRUE ORDER BY product.createdOn DESC LIMIT ?";
 			params = [city, category, subcategory, pricelimit, limit];
 		}
 
 		db.query(sql, params, (err, result) => {
-			if(err){
+			if (err) {
 				console.log("PRODUCTS GET CUS : ", err.sqlMessage);
 				res.sendStatus(500);
-			}else{
+			} else {
+				res.status(200).json(result);
+			}
+		})
+	})
+
+	// "/searchBusiness";
+	app.get('/searchBusiness', tokenVerification, (req, res) => {
+		var city = req.query.city;
+		var query = req.query.query;
+		var sql = "SELECT user.name, user.userId, business.* FROM business INNER JOIN user ON business.userId = user.userId WHERE storeCity = ? AND storeName LIKE '%' ? '%' OR storeDesc LIKE '%' ? '%' ";
+
+		db.query(sql, [city, query, query], (err, result) => {
+			if (err) {
+				console.log("BUSINESS SEARCH CUS : ", err.sqlMessage);
+				res.sendStatus(500);
+			} else {
+				res.status(200).json(result);
+			}
+		})
+	})
+
+	// "/searchOffers";
+	app.get('/searchOffers', tokenVerification, (req, res) => {
+		var city = req.query.city;
+		var query = req.query.query;
+		var sql = "SELECT business.storeName, business.image1, offers.* FROM offers INNER JOIN business ON offers.businessId = business.businessId WHERE business.storeCity = ? AND offerName LIKE '%' ? '%' OR offerDesc LIKE '%' ? '%' ";
+
+		db.query(sql, [city, query, query], (err, result) => {
+			if (err) {
+				console.log("OFFER SEARCH CUS : ", err.sqlMessage);
+				res.sendStatus(500);
+			} else {
+				res.status(200).json(result);
+			}
+		})
+	})
+
+	// "/searchProducts";
+	app.get('/searchProducts', tokenVerification, (req, res) => {
+		var city = req.query.city;
+		var query = req.query.query;
+		var sql = "SELECT business.storeName, business.image1, product.* FROM product INNER JOIN business ON product.businessId = business.businessId WHERE business.storeCity = ? AND productName LIKE '%' ? '%' OR productDesc LIKE '%' ? '%' ";
+
+		db.query(sql, [city, query, query], (err, result) => {
+			if (err) {
+				console.log("PRODUCT SEARCH CUS : ", err.sqlMessage);
+				res.sendStatus(500);
+			} else {
+				res.status(200).json(result);
+			}
+		})
+	})
+
+	// "/searchServices";
+	app.get('/searchServices', tokenVerification, (req, res) => {
+		var city = req.query.city;
+		var query = req.query.query;
+		var sql = "SELECT business.storeName, business.image1, services.* FROM services INNER JOIN business ON services.businessId = business.businessId WHERE business.storeCity = ? AND serviceName LIKE '%' ? '%' OR serviceDesc LIKE '%' ? '%' ";
+
+		db.query(sql, [city, query, query], (err, result) => {
+			if (err) {
+				console.log("PRODUCT SEARCH CUS : ", err.sqlMessage);
+				res.sendStatus(500);
+			} else {
 				res.status(200).json(result);
 			}
 		})
