@@ -320,7 +320,7 @@ module.exports = (app, db) => {
 	// get business offers by businessId
 	app.get('/getUserOffers/:businessId', tokenVerification, (req, res) => {
 		var businessId = req.params.businessId;
-		var sql = "SELECT * FROM offers WHERE businessId = ? ORDER BY offers.createdOn DESC";
+		var sql = "SELECT offers.*, business.storeName, business.image1 FROM offers INNER JOIN business ON offers.businessId = business.businessId WHERE offers.businessId = ? ORDER BY offers.createdOn DESC";
 
 		db.query(sql, [businessId], (err, result) => {
 			if (err) {
@@ -335,7 +335,7 @@ module.exports = (app, db) => {
 	// get business services by businessId
 	app.get('/getUserServices/:businessId', tokenVerification, (req, res) => {
 		var businessId = req.params.businessId;
-		var sql = "SELECT * FROM services WHERE businessId = ? ORDER BY services.createdOn DESC";
+		var sql = "SELECT services.*, business.storeName, business.image1 FROM services INNER JOIN business ON services.businessId = business.businessId WHERE services.businessId = ? ORDER BY services.createdOn DESC";
 
 		db.query(sql, [businessId], (err, result) => {
 			if (err) {
@@ -365,7 +365,7 @@ module.exports = (app, db) => {
 	// get business products by businessId
 	app.get('/getUserProducts/:businessId', tokenVerification, (req, res) => {
 		var businessId = req.params.businessId;
-		var sql = "SELECT * FROM product WHERE businessId = ? ORDER BY product.createdOn";
+		var sql = "SELECT product.*, business.storeName, business.image1 FROM product INNER JOIN business ON product.businessId = business.businessId WHERE product.businessId = ? ORDER BY product.createdOn";
 
 		db.query(sql, [businessId], (err, result) => {
 			if (err) {
@@ -760,6 +760,7 @@ module.exports = (app, db) => {
 		db.query(sql, [postId, userId], (err, result) => {
 			if (err) {
 				res.sendStatus(500);
+				console.log("ERROR  ", err.sqlMessage)
 			} else {
 				res.status(200).json({
 					message: "Done",
@@ -964,36 +965,6 @@ module.exports = (app, db) => {
 		})
 	})
 
-	// add contest answer
-	app.post('/addContestAnswer', tokenVerification, (req, res) => {
-		var userId = req.body.userId;
-		var contestId = req.body.contestId;
-		var answerType = req.bodu.answerType;
-		var answerText = req.body.answerText;
-		var answerImage = req.body.answerImage;
-		var answerVideo = req.body.answerVideo;
-
-		var timestamp = Math.floor(Date.now() / 1000);
-		var contestImage = "./serverData/contest/image/" + contestId + "/" + userId + "/" + timestamp + "/image.jpg";
-
-		if (answerType === 'i')
-			saveImageToFile(answerImage, contestImage);
-
-		var sql = "INSERT INTO contestAnswers(userId, contestId, answerType, answerImage, answerText, answerVideo) VALUES(?, ?, ?, ?, ?, ?)";
-
-		db.query(sql, [userId, contestId, answerType, answerImage, answerText, answerVideo], (err, result) => {
-			if (err) {
-				console.log("ADD CONTEST ANSWERS :: ", err);
-				res.sendStatus(500);
-			} else {
-				res.status(200).json({
-					message: "Done",
-					success: true
-				})
-			}
-		})
-	})
-
 	// get category from cat id
 	app.get('/getCategory/:categoryId', tokenVerification, (req, res) => {
 		var categoryId = req.params.categoryId;
@@ -1094,7 +1065,6 @@ module.exports = (app, db) => {
 
 		db.query(sql, [name, email, message], (err, result) => {
 			if (err) {
-				console.log("FEEDBACK ERROR :: " + err.sqlMessage);
 				res.sendStatus(500);
 			} else {
 				res.status(200).json({
@@ -1142,12 +1112,10 @@ module.exports = (app, db) => {
 
 		db.query(sql, [name, email, city, phone, image, userId], (err, result) => {
 			if (err) {
-				console.log("UPDATE USER PROFILE :: " + err.sqlMessage);
 				res.sendStatus(500);
 			} else {
 				db.query(selectSql, [userId], (selErr, selResult) => {
 					if (selErr) {
-						console.log("SELECTING UPDATED PROFILE :: ", err.sqlMessage);
 						res.sendStatus(500);
 					} else {
 						if (selResult.length > 0) {
@@ -1170,7 +1138,6 @@ module.exports = (app, db) => {
 
 		db.query(sql, [userId, senderId], (err, result) => {
 			if (err) {
-				console.log("WISHES ERROR :: ", err.sqlMessage);
 				res.sendStatus(500);
 			} else {
 				res.status(200).send({
@@ -1211,9 +1178,8 @@ module.exports = (app, db) => {
 
 		saveImageToFile(answerImage, finalAnswerImage);
 
-		db.query(sql, [userId, contestId, answerType, answerText, answerImage, answerVideo], (err, result) => {
+		db.query(sql, [userId, contestId, answerType, answerText, finalAnswerImage, answerVideo], (err, result) => {
 			if (err) {
-				console.log("SUBMIT CONTEST ANSWER :: ", err.sqlMessage);
 				res.sendStatus(500);
 			} else {
 				res.status(200).json({
@@ -1398,6 +1364,59 @@ module.exports = (app, db) => {
 			} else {
 				res.status(200).json(result);
 			}
+		})
+	})
+
+	// get product dettails
+	app.get('/getProductDetails', tokenVerification, (req, res) => {
+		var productId = req.query.productId;
+		var sql = "SELECT product.*, business.storeName, business.image1 FROM product INNER JOIN business ON business.businessId = product.businessId WHERE productId = ?";
+
+		db.query(sql, [productId], (err, result) => {
+			if(err){
+				console.log("GET PRO DETAILS :: ", err.sqlMessage);
+				res.sendStatus(500);
+			}else{
+				if(result.length > 0)
+					res.status(200).json(result[0]);
+				else
+					res.sendStatus(404);
+			}
+		})
+	})
+
+	// submit review
+	app.post('/submitReview', tokenVerification, (req, res) => {
+		var userId = req.body.userId;
+		var businessId = req.body.businessId;
+		var rating = req.body.rating;
+		var text = req.body.rating;
+		var sql = "INSERT INTO reviews(userId, businessId, rating, text) VALUES(?, ?, ?, ?)";
+
+		db.query(sql, [userId, businessId, rating, text], (err, result) => {
+			if(err){
+				console.log("REV SUBMIT :: ", err.sqlMessage);
+				res.sendStatus(500);
+			}else{
+				res.status(200).json({
+					message : "DONE",
+					success : true
+				})
+			}
+		})
+	})
+
+	// add viewer
+	app.post('/addViewer', tokenVerification, (req, res) => {
+		var userId = req.body.userId;
+		var businessId = req.body.businessId;
+		var sql = "INSERT INTO viewers(userId, businessId) VALUES(?, ?)";
+
+		db.query(sql, [userId, businessId], (err, result) => {
+			res.status(200).json({
+				success : true,
+				message : "Done"
+			});
 		})
 	})
 }

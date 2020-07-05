@@ -198,12 +198,11 @@ CREATE TABLE views(
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
 
 CREATE TABLE reviews(
-    reviewId INT UNIQUE AUTO_INCREMENT,
+    reviewId INT PRIMARY KEY AUTO_INCREMENT,
     businessId INT NOT NULL,
     userId INT NOT NULL,
     rating DECIMAL(2, 1) DEFAULT 0,
     text VARCHAR(100) NOT NULL, 
-    PRIMARY KEY(userId, businessId),
     createdOn TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (userId) REFERENCES user(userId) ON DELETE CASCADE,
     FOREIGN KEY (businessId) REFERENCES business(businessId) ON DELETE CASCADE
@@ -242,11 +241,11 @@ CREATE TABLE contestAnswers(
     answerId INT UNIQUE AUTO_INCREMENT,
     userId INT NOT NULL,
     contestId INT NOT NULL,
-    answerType VARCHAR(20) NOT NULL,
-    answerText VARCHAR(100) NOT NULL,
-    answerImage VARCHAR(255) NOT NULL,
-    answerVideo VARCHAR(255) NOT NULL,
-    PRIMARY KEY(userId, contestId),
+    answerType VARCHAR(20) DEFAULT NULL,
+    answerText VARCHAR(100) DEFAULT NULL,
+    answerImage VARCHAR(255) DEFAULT NULL,
+    answerVideo VARCHAR(255) DEFAULT NULL,
+    PRIMARY KEY(contestId, userId),
     FOREIGN KEY (userId) REFERENCES user(userId) ON DELETE CASCADE,
     createdOn TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
@@ -279,7 +278,7 @@ CREATE TRIGGER upd_post_on_new_like AFTER INSERT ON likes
 
             UPDATE post SET likes = likes + 1 WHERE postId = NEW.postId;
             UPDATE user SET points = points + 1 WHERE userId = @userIdToUpdate;
-       END;
+       END;;
 ;;
 
 delimiter ;;
@@ -301,7 +300,7 @@ CREATE TRIGGER upd_business_on_new_review AFTER INSERT ON reviews
             SET @newRating := NEW.rating;
             SET @oldRating := (SELECT rating FROM business WHERE businessId = NEW.businessId);
 
-            SET @calRating := @newRating + @oldRating;
+            SET @calRating := (@newRating + @oldRating) / 2;
             UPDATE business SET rating = @calRating WHERE businessId = NEW.businessId;
        END;
 ;;
