@@ -51,9 +51,11 @@ module.exports = (app, db) => {
 
 	//delete a file
 	function deleteFile(filePath) {
-		var path = __dirname + filePath.substring(1);
-		if (fs.existsSync(path))
-			fs.unlinkSync(path);
+		if (filePath !== null) {
+			var path = __dirname + filePath.substring(1);
+			if (fs.existsSync(path))
+				fs.unlinkSync(path);
+		}
 	}
 
 	// delete video file
@@ -760,7 +762,6 @@ module.exports = (app, db) => {
 		db.query(sql, [postId, userId], (err, result) => {
 			if (err) {
 				res.sendStatus(500);
-				console.log("ERROR  ", err.sqlMessage)
 			} else {
 				res.status(200).json({
 					message: "Done",
@@ -819,7 +820,7 @@ module.exports = (app, db) => {
 						}
 					})
 				} else {
-					res.send(500);
+					res.sendStatus(500);
 				}
 			}
 		})
@@ -1203,7 +1204,7 @@ module.exports = (app, db) => {
 		if (category === -1 && subcategory === -1) {
 			sql = "SELECT business.*, user.name FROM business INNER JOIN user ON business.userId = user.userId WHERE storeCity = ? AND business.approve = TRUE ORDER BY business.createdOn DESC  LIMIT ?";
 			params = [city, limit];
-		} else if(subcategory === 0){
+		} else if (subcategory === 0) {
 			sql = "SELECT business.*, user.name FROM business INNER JOIN user ON business.userId = user.userId WHERE storeCity = ? AND categoryId = ? AND business.approve = TRUE  ORDER BY business.createdOn DESC  LIMIT ? ";
 			params = [city, category, limit]
 		} else {
@@ -1253,7 +1254,7 @@ module.exports = (app, db) => {
 		if (category === -1 && subcategory === -1) {
 			sql = "SELECT business.storeName, business.image1, services.* FROM services INNER JOIN business ON services.businessId = business.businessId WHERE business.storeCity = ? AND services.servicePrice < ? AND services.approve = TRUE ORDER BY services.createdOn DESC LIMIT ?";
 			params = [city, pricelimit, limit];
-		} else if(subcategory === 0){
+		} else if (subcategory === 0) {
 			sql = "SELECT business.storeName, business.image1, services.* FROM services INNER JOIN business ON services.businessId = business.businessId WHERE business.storeCity = ? AND services.categoryId = ? AND services.servicePrice < ? AND services.approve = TRUE ORDER BY services.createdOn DESC LIMIT ?";
 			params = [city, category, pricelimit, limit];
 		} else {
@@ -1284,10 +1285,10 @@ module.exports = (app, db) => {
 		if (category === -1 && subcategory === -1) {
 			sql = "SELECT business.storeName, business.image1, product.* FROM product INNER JOIN business ON product.businessId = business.businessId WHERE business.storeCity = ? AND product.productPrice < ? AND product.approve = TRUE ORDER BY product.createdOn DESC LIMIT ?";
 			params = [city, pricelimit, limit];
-		}else if(subcategory === 0){
+		} else if (subcategory === 0) {
 			sql = "SELECT business.storeName, business.image1, product.* FROM product INNER JOIN business ON product.businessId = business.businessId WHERE business.storeCity = ? AND product.categoryId = ? AND product.productPrice < ? AND product.approve = TRUE ORDER BY product.createdOn DESC LIMIT ?";
 			params = [city, category, pricelimit, limit];
-		} 
+		}
 		else {
 			sql = "SELECT business.storeName, business.image1, product.* FROM product INNER JOIN business ON product.businessId = business.businessId WHERE business.storeCity = ? AND product.categoryId = ? AND product.subCategoryId = ? AND product.productPrice < ? AND product.approve = TRUE ORDER BY product.createdOn DESC LIMIT ?";
 			params = [city, category, subcategory, pricelimit, limit];
@@ -1373,11 +1374,11 @@ module.exports = (app, db) => {
 		var sql = "SELECT product.*, business.storeName, business.image1 FROM product INNER JOIN business ON business.businessId = product.businessId WHERE productId = ?";
 
 		db.query(sql, [productId], (err, result) => {
-			if(err){
+			if (err) {
 				console.log("GET PRO DETAILS :: ", err.sqlMessage);
 				res.sendStatus(500);
-			}else{
-				if(result.length > 0)
+			} else {
+				if (result.length > 0)
 					res.status(200).json(result[0]);
 				else
 					res.sendStatus(404);
@@ -1390,17 +1391,17 @@ module.exports = (app, db) => {
 		var userId = req.body.userId;
 		var businessId = req.body.businessId;
 		var rating = req.body.rating;
-		var text = req.body.rating;
+		var text = req.body.text;
 		var sql = "INSERT INTO reviews(userId, businessId, rating, text) VALUES(?, ?, ?, ?)";
 
 		db.query(sql, [userId, businessId, rating, text], (err, result) => {
-			if(err){
+			if (err) {
 				console.log("REV SUBMIT :: ", err.sqlMessage);
 				res.sendStatus(500);
-			}else{
+			} else {
 				res.status(200).json({
-					message : "DONE",
-					success : true
+					message: "DONE",
+					success: true
 				})
 			}
 		})
@@ -1414,8 +1415,8 @@ module.exports = (app, db) => {
 
 		db.query(sql, [userId, businessId], (err, result) => {
 			res.status(200).json({
-				success : true,
-				message : "Done"
+				success: true,
+				message: "Done"
 			});
 		})
 	})

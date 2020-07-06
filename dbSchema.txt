@@ -293,14 +293,6 @@ delimiter ;;
 CREATE TRIGGER upd_business_on_new_review AFTER INSERT ON reviews
        FOR EACH ROW
        BEGIN
-            DECLARE newRating DECIMAL(2, 1);
-            DECLARE oldRating DECIMAL(2, 1);
-            DECLARE calRating DECIMAL(2, 1);
-            
-            SET @newRating := NEW.rating;
-            SET @oldRating := (SELECT rating FROM business WHERE businessId = NEW.businessId);
-
-            SET @calRating := (@newRating + @oldRating) / 2;
-            UPDATE business SET rating = @calRating WHERE businessId = NEW.businessId;
+            UPDATE business SET rating = (rating + NEW.rating) / 2 WHERE businessId = NEW.businessId;
        END;
 ;;
