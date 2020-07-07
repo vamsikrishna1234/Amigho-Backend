@@ -5,6 +5,7 @@ const nodemailer = require('nodemailer');
 const fs = require('fs');
 const { time } = require('console');
 const { on } = require('process');
+var QRCode = require('qrcode')
 
 // mailing agent
 const transporter = nodemailer.createTransport({
@@ -45,6 +46,29 @@ module.exports = (app, db) => {
 				fs.writeFile(filePath, base64Data, 'base64', function (err) {
 					if (err) { console.log("ERROR" + err); }
 				});
+			}
+		});
+	}
+
+	//save the qr code
+	function saveQRToFile(businessId, productId, filePath) {
+		if (businessId === undefined)
+			return
+
+		fs.mkdir(filePath.split("/qr_code")[0], { recursive: true }, (err) => {
+			if (err) {
+				console.log("DIR CREATION ERROR:", err);
+			} else {
+				QRCode.toFile(filePath, productId + "," + businessId, {
+					color: {
+						dark: '#FF6600',  // Orange dots
+						light: '#FFFF' // White background
+					},
+					type: "png"
+				}, function (err) {
+					if (err) throw err
+					console.log('done')
+				})
 			}
 		});
 	}
@@ -627,6 +651,7 @@ module.exports = (app, db) => {
 		var productImage4 = req.body.productImage4;
 		var productVideo = req.body.productVideo;
 		var productDesc = req.body.productDesc;
+		var stock = req.body.stock;
 
 		var timestamp = Math.floor(Date.now() / 1000);
 		var finalProductImage1 = "./serverData/product/" + businessId + "/" + timestamp + "/image_1.jpg";
@@ -639,17 +664,31 @@ module.exports = (app, db) => {
 		saveImageToFile(productImage3, finalProductImage3);
 		saveImageToFile(productImage4, finalProductImage4);
 
-		var sql = "INSERT INTO product(businessId, categoryId, subCategoryId, productName, productPrice, gst, productImage1, productImage2, productImage3, productImage4, productVideo, productDesc) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+		var sql = "INSERT INTO product(businessId, categoryId, subCategoryId, productName, productPrice, gst, productImage1, productImage2, productImage3, productImage4, productVideo, productDesc, stock) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-		db.query(sql, [businessId, categoryId, subCategoryId, productName, productPrice, gst, finalProductImage1, finalProductImage2, finalProductImage3, finalProductImage4, productVideo, productDesc], (err, result) => {
+		db.query(sql, [businessId, categoryId, subCategoryId, productName, productPrice, gst, finalProductImage1, finalProductImage2, finalProductImage3, finalProductImage4, productVideo, productDesc, stock], (err, result) => {
 			if (err) {
 				console.log("NEW PRODUCT :: ", err);
 				res.sendStatus(500);
 			} else {
-				res.status(200).json({
-					success: true,
-					message: "Done"
-				})
+				if (result.insertId != undefined) {
+					var qrFilePath = "./serverData/product/" + businessId + "/" + result.insertId + "/qr_code.png";
+					saveQRToFile(businessId, result.insertId, qrFilePath);
+					db.query("UPDATE product SET qr = ? WHERE productId = ?", [qrFilePath, result.insertId], (insertErr, insertResult) => {
+						if (insertErr) {
+							console.log("UPDATE QR PRODUCT :: ", insertErr.sqlMessage);
+							res.sendStatus(500);
+						}
+						else {
+							res.status(200).json({
+								success: true,
+								message: "Done"
+							})
+						}
+					})
+				} else {
+					res.sendStatus(500);
+				}
 			}
 		})
 
@@ -844,6 +883,7 @@ module.exports = (app, db) => {
 					deleteFile(result[0].productImage3);
 					deleteFile(result[0].productImage4);
 					deleteVideoFile(result[0].productVideo);
+					deleteFile(result[0].qr);
 
 					db.query(deleteSql, [productId], (err, result) => {
 						if (err) {
@@ -1418,6 +1458,41 @@ module.exports = (app, db) => {
 				success: true,
 				message: "Done"
 			});
+		})
+	})
+
+	// get sold products
+	app.get('/getSoldProducts', tokenVerification, (req, res) => {
+		var businessId = req.query.businessId;
+		var sql = "SELECT product.*, business.storeName, business.image1 FROM product INNER JOIN soldProduct ON product.productId = soldProduct.productId INNER JOIN business ON soldProduct.businessId = business.businessId WHERE soldProduct.businessId = ? ORDER BY soldProduct.createdOn DESC";
+
+		db.query(sql, [businessId], (err, result) => {
+			if (err) {
+				console.log("GET_SOLD_PRO ERR :", err.sqlMessage);
+				res.sendStatus(500);
+			} else {
+				res.status(200).json(result);
+			}
+		})
+	})
+
+	//submit sold product
+	app.post('/submitSoldProduct', tokenVerification, (req, res) => {
+		var businessId = req.body.businessId;
+		var productId = req.body.productId;
+		var stock = req.body.stock;
+		var sql = "INSERT INTO soldProduct(businessId, productId, stock) VALUES(?, ?, ?)";
+
+		db.query(sql, [businessId, productId, stock], (err, result) => {
+			if (err) {
+				console.log("SUBMIT SOLD PRO ERR :", err.sqlMessage);
+				res.sendStatus(500);
+			} else {
+				res.status(200).json({
+					message: "DONE",
+					success: true
+				});
+			}
 		})
 	})
 }

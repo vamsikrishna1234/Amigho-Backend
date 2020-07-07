@@ -260,6 +260,17 @@ CREATE TABLE wishes(
     createdOn TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
 
+CREATE TABLE soldProduct(
+    sellId INT PRIMARY KEY AUTO_INCREMENT,
+    productId INT NOT NULL,
+    businessId INT NOT NULL,
+    stock INT NOT NULL,
+    FOREIGN KEY (businessId) REFERENCES business(businessId) ON DELETE CASCADE,
+    FOREIGN KEY (productId) REFERENCES product(productId) ON DELETE CASCADE,
+    createdOn TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NULL
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
+
 delimiter ;;
 CREATE TRIGGER upd_post_on_new_comment AFTER INSERT ON comments
        FOR EACH ROW
@@ -295,4 +306,12 @@ CREATE TRIGGER upd_business_on_new_review AFTER INSERT ON reviews
        BEGIN
             UPDATE business SET rating = (rating + NEW.rating) / 2 WHERE businessId = NEW.businessId;
        END;
+;;
+
+delimiter ;;
+CREATE TRIGGER upd_product_on_new_sell AFTER INSERT ON soldProduct
+        FOR EACH ROW
+        BEGIN
+            UPDATE product SET stock = stock - NEW.stock WHERE productId = NEW.productId;
+        END;
 ;;
