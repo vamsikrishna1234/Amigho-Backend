@@ -5,8 +5,6 @@ const nodemailer = require('nodemailer');
 const fs = require('fs');
 const { time } = require('console');
 const { on } = require('process');
-var QRCode = require('qrcode')
-
 // mailing agent
 const transporter = nodemailer.createTransport({
 	service: 'gmail',
@@ -50,28 +48,6 @@ module.exports = (app, db) => {
 		});
 	}
 
-	//save the qr code
-	function saveQRToFile(businessId, productId, filePath) {
-		if (businessId === undefined)
-			return
-
-		fs.mkdir(filePath.split("/qr_code")[0], { recursive: true }, (err) => {
-			if (err) {
-				console.log("DIR CREATION ERROR:", err);
-			} else {
-				QRCode.toFile(filePath, productId + "," + businessId, {
-					color: {
-						dark: '#FF6600',  // Orange dots
-						light: '#FFFF' // White background
-					},
-					type: "png"
-				}, function (err) {
-					if (err) throw err
-					console.log('done')
-				})
-			}
-		});
-	}
 
 	//delete a file
 	function deleteFile(filePath) {
@@ -671,24 +647,10 @@ module.exports = (app, db) => {
 				console.log("NEW PRODUCT :: ", err);
 				res.sendStatus(500);
 			} else {
-				if (result.insertId != undefined) {
-					var qrFilePath = "./serverData/product/" + businessId + "/" + result.insertId + "/qr_code.png";
-					saveQRToFile(businessId, result.insertId, qrFilePath);
-					db.query("UPDATE product SET qr = ? WHERE productId = ?", [qrFilePath, result.insertId], (insertErr, insertResult) => {
-						if (insertErr) {
-							console.log("UPDATE QR PRODUCT :: ", insertErr.sqlMessage);
-							res.sendStatus(500);
-						}
-						else {
-							res.status(200).json({
-								success: true,
-								message: "Done"
-							})
-						}
-					})
-				} else {
-					res.sendStatus(500);
-				}
+				res.status(200).json({
+					success: true,
+					message: "Done"
+				})
 			}
 		})
 
@@ -883,7 +845,6 @@ module.exports = (app, db) => {
 					deleteFile(result[0].productImage3);
 					deleteFile(result[0].productImage4);
 					deleteVideoFile(result[0].productVideo);
-					deleteFile(result[0].qr);
 
 					db.query(deleteSql, [productId], (err, result) => {
 						if (err) {
@@ -1481,9 +1442,16 @@ module.exports = (app, db) => {
 		var businessId = req.body.businessId;
 		var productId = req.body.productId;
 		var stock = req.body.stock;
-		var sql = "INSERT INTO soldProduct(businessId, productId, stock) VALUES(?, ?, ?)";
+		var productCode = req.body.productCode;
+		var image = req.body.image;
+		var sql = "INSERT INTO soldProduct(businessId, productId, stock, productCode, image) VALUES(?, ?, ?, ?, ?)";
 
-		db.query(sql, [businessId, productId, stock], (err, result) => {
+		var timestamp = Math.floor(Date.now() / 1000);
+		var finalImage = "./serverData/sell/" + businessId + "/" + productId + "/" + timestamp + "/image_1.jpg";
+
+		saveImageToFile(image, finalImage);
+
+		db.query(sql, [businessId, productId, stock, productCode, finalImage], (err, result) => {
 			if (err) {
 				console.log("SUBMIT SOLD PRO ERR :", err.sqlMessage);
 				res.sendStatus(500);

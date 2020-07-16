@@ -90,6 +90,8 @@ CREATE TABLE product(
     productImage4 VARCHAR(255),
     productVideo VARCHAR(255),
     productDesc VARCHAR(100),
+    stock INT NOT NULL,
+    productCode VARCHAR(20) DEFAULT NULL,
     approve BOOL DEFAULT FALSE,
     createdOn TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (businessId) REFERENCES business(businessId) ON DELETE CASCADE,
@@ -265,6 +267,9 @@ CREATE TABLE soldProduct(
     productId INT NOT NULL,
     businessId INT NOT NULL,
     stock INT NOT NULL,
+    image VARCHAR(255),
+    approve BOOL DEFAULT FALSE,
+    productCode VARCHAR(20) NOT NULL,
     FOREIGN KEY (businessId) REFERENCES business(businessId) ON DELETE CASCADE,
     FOREIGN KEY (productId) REFERENCES product(productId) ON DELETE CASCADE,
     createdOn TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -308,10 +313,3 @@ CREATE TRIGGER upd_business_on_new_review AFTER INSERT ON reviews
        END;
 ;;
 
-delimiter ;;
-CREATE TRIGGER upd_product_on_new_sell AFTER INSERT ON soldProduct
-        FOR EACH ROW
-        BEGIN
-            UPDATE product SET stock = stock - NEW.stock WHERE productId = NEW.productId;
-        END;
-;;
