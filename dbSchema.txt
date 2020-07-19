@@ -130,6 +130,7 @@ CREATE TABLE offers(
     offerImage3 VARCHAR(255),
     offerImage4 VARCHAR(255),
     offerVideo VARCHAR(255),
+    offerPrice DECIMAL(10, 2),
     approve BOOL DEFAULT FALSE,
     createdOn TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (businessId) REFERENCES business(businessId) ON DELETE CASCADE,

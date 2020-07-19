@@ -67,16 +67,42 @@ module.exports = (app, db) => {
 
 	// login user
 	app.post('/loginUser', (req, res) => {
-		var email = req.body.email;
+		var phone = req.body.phone;
 		var password = req.body.password;
-		var sql = "SELECT * FROM user WHERE email = ? AND password = ?";
+		var sql = "SELECT * FROM user WHERE phone = ? AND password = ?";
 
-		db.query(sql, [email, password], (err, result) => {
+		db.query(sql, [phone, password], (err, result) => {
 			if (err) {
 				console.log("ERROR ::", err.sqlMessage);
 				res.sendStatus(500);
 			} else {
 				res.status(200).json(result[0]);
+			}
+		})
+	})
+
+	//update password
+	app.post('/updatePassword', (req, res) => {
+		var phone = req.body.phone;
+		var password = req.body.password;
+		var sql = "UPDATE user SET password = ? WHERE phone = ?";
+
+		db.query(sql, [password, phone], (err, result) => {
+			if (err) {
+				console.log(err.sqlMessage);
+				res.sendStatus(500);
+			} else {
+				if (result.affectedRows > 0) {
+					res.status(200).json({
+						message: "DONE",
+						success: true
+					})
+				} else {
+					res.status(200).json({
+						message: "DONE",
+						success: false
+					})
+				}
 			}
 		})
 	})
