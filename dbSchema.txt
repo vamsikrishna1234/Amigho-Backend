@@ -33,6 +33,15 @@ CREATE TABLE subCategory(
     FOREIGN KEY (categoryId) REFERENCES category(categoryId) ON DELETE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
 
+CREATE TABLE subSubCategory(
+    subSubCategoryId INT PRIMARY KEY AUTO_INCREMENT,
+    subCategoryId INT NOT NULL,
+    title VARCHAR(40) NOT NULL,
+    createdOn TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NULL,
+    FOREIGN KEY (subCategoryId) REFERENCES subCategory(subCategoryId) ON DELETE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
+
 CREATE TABLE refers(
     referId INT PRIMARY KEY AUTO_INCREMENT,
     userId INT NOT NULL,
@@ -81,7 +90,9 @@ CREATE TABLE product(
     businessId INT NOT NULL,
     categoryId INT NOT NULL,
     subCategoryId INT DEFAULT NULL,
+    subSubCategoryId INT DEFAULT NULL,
     productName VARCHAR(40) NOT NULL,
+    brand VARCHAR(50) NOT NULL,
     productPrice DECIMAL(10,2),
     gst DECIMAL(10,2),
     productImage1 VARCHAR(255) NOT NULL,
@@ -96,6 +107,7 @@ CREATE TABLE product(
     createdOn TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (businessId) REFERENCES business(businessId) ON DELETE CASCADE,
     FOREIGN KEY (categoryId) REFERENCES category(categoryId) ON DELETE CASCADE,
+    FOREIGN KEY (subSubCategoryId) REFERENCES subSubCategory(subSubCategoryId) ON DELETE CASCADE,
     FOREIGN KEY (subCategoryId) REFERENCES subCategory(subCategoryId) ON DELETE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci;
 
@@ -314,3 +326,6 @@ CREATE TRIGGER upd_business_on_new_review AFTER INSERT ON reviews
        END;
 ;;
 
+SELECT * FROM  user WHERE  MONTHOFYEAR(dob) = MONTHOFYEAR(CURDATE());
+SELECT userId FROM user where DATE_FORMAT(dob, '%m-%d') = DATE_FORMAT(NOW(), '%m-%d');
+SELECT dob, DATE_FORMAT(dob, '%m-%d'), DATE_FORMAT(NOW(), '%m-%d') from user;

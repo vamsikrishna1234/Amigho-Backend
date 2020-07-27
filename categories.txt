@@ -19,6 +19,8 @@ INSERT INTO subCategory(categoryId, title) VALUES(1, 'Daily Needs');
 INSERT INTO subCategory(categoryId, title) VALUES(1, 'Kirana Stores');
 INSERT INTO subCategory(categoryId, title) VALUES(1, 'Others');
 
+INSERT INTO subSubCategory(subCategoryId, title) VALUES(1, 'Earings');
+
 INSERT INTO subCategory(categoryId, title) VALUES(2, 'Pharmaceuticals');
 INSERT INTO subCategory(categoryId, title) VALUES(2, 'Ayurvedic');
 INSERT INTO subCategory(categoryId, title) VALUES(2, 'Others');

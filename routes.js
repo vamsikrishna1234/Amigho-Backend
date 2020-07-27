@@ -234,6 +234,21 @@ module.exports = (app, db) => {
 		})
 	})
 
+	// get all sub sub categories for sub category
+	app.get('/getSubSubCategoryForSubCategory/:subCategoryId', tokenVerification, (req, res) => {
+		var subCategoryId = req.params.subCategoryId;
+		var sql = "SELECT * FROM subSubCategory where subCategoryId = ?";
+
+		db.query(sql, [subCategoryId], (err, result) => {
+			if (err) {
+				console.log("SUB SUB CATEGORY ERROR ::" + err.sqlMessage);
+				res.sendStatus(500);
+			} else {
+				res.status(200).json(result);
+			}
+		})
+	})
+
 	// add business
 	app.post('/registerUserBusiness', tokenVerification, (req, res) => {
 		var userId = req.body.userId;
@@ -275,7 +290,7 @@ module.exports = (app, db) => {
 	app.get('/getBirthDays/:city', tokenVerification, (req, res) => {
 		var city = req.params.city;
 
-		var sql = "SELECT * FROM user WHERE DATE(dob) = CURDATE() AND approve = 1 AND city LIKE '%' ? '%'";
+		var sql = "SELECT * FROM user WHERE DATE_FORMAT(dob, '%m-%d') = DATE_FORMAT(CURDATE(), '%m-%d') AND approve = 1 AND city LIKE '%' ? '%'";
 		db.query(sql, [city], (err, result) => {
 			if (err) {
 				console.log("BIRTHDAYS ERROR :: ", err.sqlMessage);
@@ -304,8 +319,8 @@ module.exports = (app, db) => {
 	app.get('/getPosts/:city', tokenVerification, (req, res) => {
 		var city = req.params.city;
 
-		var sql = "SELECT post.*, user.userId, user.name FROM post INNER JOIN user ON post.userId = user.userId WHERE post.createdOn >= DATE_SUB(NOW(), INTERVAL 15 DAY) AND post.approve = 1 AND user.city LIKE '%' ? '%' ORDER BY post.createdOn DESC";
-		db.query(sql, [city], (err, result) => {
+		var sql = "SELECT post.*, user.userId, user.name FROM post INNER JOIN user ON post.userId = user.userId WHERE post.createdOn >= DATE_SUB(NOW(), INTERVAL 15 DAY) AND post.approve = 1 AND user.city LIKE '%' ? '%' OR user.address LIKE '%' ? '%' ORDER BY post.createdOn DESC";
+		db.query(sql, [city, city], (err, result) => {
 			if (err) {
 				console.log("POSTS ERROR :: ", err.sqlMessage);
 				res.sendStatus(500);
@@ -644,6 +659,7 @@ module.exports = (app, db) => {
 		var businessId = req.body.businessId;
 		var categoryId = req.body.categoryId;
 		var subCategoryId = req.body.subCategoryId;
+		var subSubCategoryId = req.body.subSubCategoryId;
 		var productName = req.body.productName;
 		var productPrice = req.body.productPrice;
 		var gst = req.body.gst;
@@ -654,6 +670,7 @@ module.exports = (app, db) => {
 		var productVideo = req.body.productVideo;
 		var productDesc = req.body.productDesc;
 		var stock = req.body.stock;
+		var brand = req.body.productBrand;
 
 		var timestamp = Math.floor(Date.now() / 1000);
 		var finalProductImage1 = "./serverData/product/" + businessId + "/" + timestamp + "/image_1.jpg";
@@ -666,9 +683,9 @@ module.exports = (app, db) => {
 		saveImageToFile(productImage3, finalProductImage3);
 		saveImageToFile(productImage4, finalProductImage4);
 
-		var sql = "INSERT INTO product(businessId, categoryId, subCategoryId, productName, productPrice, gst, productImage1, productImage2, productImage3, productImage4, productVideo, productDesc, stock) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+		var sql = "INSERT INTO product(businessId, categoryId, subCategoryId, subSubCategoryId, productName, productPrice, brand, gst, productImage1, productImage2, productImage3, productImage4, productVideo, productDesc, stock) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-		db.query(sql, [businessId, categoryId, subCategoryId, productName, productPrice, gst, finalProductImage1, finalProductImage2, finalProductImage3, finalProductImage4, productVideo, productDesc, stock], (err, result) => {
+		db.query(sql, [businessId, categoryId, subCategoryId, subSubCategoryId, productName, productPrice, brand, gst, finalProductImage1, finalProductImage2, finalProductImage3, finalProductImage4, productVideo, productDesc, stock], (err, result) => {
 			if (err) {
 				console.log("NEW PRODUCT :: ", err);
 				res.sendStatus(500);
@@ -1305,6 +1322,8 @@ module.exports = (app, db) => {
 		var limit = parseInt(req.query.limit);
 		var category = parseInt(req.query.category);
 		var subcategory = parseInt(req.query.subcategory);
+		var subSubCategory = parseInt(req.query.subSubCategory);
+		var brand = req.query.brand;
 		var pricelimit = parseInt(req.query.pricelimit);
 		var sql;
 		var params;
@@ -1315,10 +1334,9 @@ module.exports = (app, db) => {
 		} else if (subcategory === 0) {
 			sql = "SELECT business.storeName, business.image1, product.* FROM product INNER JOIN business ON product.businessId = business.businessId WHERE business.storeCity = ? AND product.categoryId = ? AND product.productPrice < ? AND product.approve = TRUE ORDER BY product.createdOn DESC LIMIT ?";
 			params = [city, category, pricelimit, limit];
-		}
-		else {
-			sql = "SELECT business.storeName, business.image1, product.* FROM product INNER JOIN business ON product.businessId = business.businessId WHERE business.storeCity = ? AND product.categoryId = ? AND product.subCategoryId = ? AND product.productPrice < ? AND product.approve = TRUE ORDER BY product.createdOn DESC LIMIT ?";
-			params = [city, category, subcategory, pricelimit, limit];
+		}else {
+			sql = "SELECT business.storeName, business.image1, product.* FROM product INNER JOIN business ON product.businessId = business.businessId WHERE business.storeCity = ? AND product.categoryId = ? AND product.subCategoryId = ? AND product.subSubCategoryId = ? AND brand LIKE '%' ? '%' AND product.productPrice < ? AND product.approve = TRUE ORDER BY product.createdOn DESC LIMIT ?";
+			params = [city, category, subcategory, subSubCategory, brand, pricelimit, limit];
 		}
 
 		db.query(sql, params, (err, result) => {
