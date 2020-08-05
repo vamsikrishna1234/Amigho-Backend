@@ -363,7 +363,7 @@ module.exports = (app, db) => {
 	// get business offers by businessId
 	app.get('/getUserOffers/:businessId', tokenVerification, (req, res) => {
 		var businessId = req.params.businessId;
-		var sql = "SELECT offers.*, business.storeName, business.image1 FROM offers INNER JOIN business ON offers.businessId = business.businessId WHERE offers.businessId = ? ORDER BY offers.createdOn DESC";
+		var sql = "SELECT offers.*, business.storeName, business.image1, product.productPrice FROM offers INNER JOIN business ON offers.businessId = business.businessId INNER JOIN product ON offers.productId = product.productId WHERE offers.businessId = ? ORDER BY offers.createdOn DESC";
 
 		db.query(sql, [businessId], (err, result) => {
 			if (err) {
@@ -546,6 +546,7 @@ module.exports = (app, db) => {
 		var offerImage2 = req.body.offerImage2;
 		var offerImage3 = req.body.offerImage3;
 		var offerImage4 = req.body.offerImage4;
+		var offerPrice = req.body.offerPrice;
 		var offerVideo = req.body.offerVideo;
 
 		var timestamp = Math.floor(Date.now() / 1000);
@@ -559,10 +560,10 @@ module.exports = (app, db) => {
 		saveImageToFile(offerImage3, finalOfferImage3);
 		saveImageToFile(offerImage4, finalOfferImage4);
 
-		var sql = "INSERT INTO offers(businessId, productId, offerName, offerDesc, offerImage1, offerImage2, offerImage3, offerImage4, offerVideo) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
+		var sql = "INSERT INTO offers(businessId, productId, offerName, offerDesc, offerPrice, offerImage1, offerImage2, offerImage3, offerImage4, offerVideo) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
 
-		db.query(sql, [businessId, productId, offerName, offerDesc, finalOfferImage1, finalOfferImage2, finalOfferImage3, finalOfferImage4, offerVideo], (err, result) => {
+		db.query(sql, [businessId, productId, offerName, offerDesc, offerPrice, finalOfferImage1, finalOfferImage2, finalOfferImage3, finalOfferImage4, offerVideo], (err, result) => {
 			if (err) {
 				console.log("NEW OFFER :: ", err);
 				res.sendStatus(500);
@@ -662,7 +663,6 @@ module.exports = (app, db) => {
 		var subSubCategoryId = req.body.subSubCategoryId;
 		var productName = req.body.productName;
 		var productPrice = req.body.productPrice;
-		var gst = req.body.gst;
 		var productImage1 = req.body.productImage1;
 		var productImage2 = req.body.productImage2;
 		var productImage3 = req.body.productImage3;
@@ -683,9 +683,9 @@ module.exports = (app, db) => {
 		saveImageToFile(productImage3, finalProductImage3);
 		saveImageToFile(productImage4, finalProductImage4);
 
-		var sql = "INSERT INTO product(businessId, categoryId, subCategoryId, subSubCategoryId, productName, productPrice, brand, gst, productImage1, productImage2, productImage3, productImage4, productVideo, productDesc, stock) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+		var sql = "INSERT INTO product(businessId, categoryId, subCategoryId, subSubCategoryId, productName, productPrice, brand, productImage1, productImage2, productImage3, productImage4, productVideo, productDesc, stock) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-		db.query(sql, [businessId, categoryId, subCategoryId, subSubCategoryId, productName, productPrice, brand, gst, finalProductImage1, finalProductImage2, finalProductImage3, finalProductImage4, productVideo, productDesc, stock], (err, result) => {
+		db.query(sql, [businessId, categoryId, subCategoryId, subSubCategoryId, productName, productPrice, brand, finalProductImage1, finalProductImage2, finalProductImage3, finalProductImage4, productVideo, productDesc, stock], (err, result) => {
 			if (err) {
 				console.log("NEW PRODUCT :: ", err);
 				res.sendStatus(500);
@@ -1082,11 +1082,12 @@ module.exports = (app, db) => {
 		var userId = req.body.userId;
 		var businessId = req.body.businessId;
 		var amountPaid = req.body.amountPaid;
+		var refId = req.body.refId;
 		var months = req.body.months;
 
-		var sql = "INSERT INTO vendorTransaction(userId, businessId, amountPaid, months, expiryOn) VALUES(?, ?, ?, ?, NOW() + INTERVAL " + (months * 30) + " DAY)";
+		var sql = "INSERT INTO vendorTransaction(userId, businessId, amountPaid, months, expiryOn, refId) VALUES(?, ?, ?, ?, NOW() + INTERVAL " + (months * 30) + " DAY, ?)";
 
-		db.query(sql, [userId, businessId, amountPaid, months], (err, result) => {
+		db.query(sql, [userId, businessId, amountPaid, months, refId], (err, result) => {
 			if (err) {
 				console.log("ACC PAYMENT :: ", err);
 				res.sendStatus(500);
@@ -1273,7 +1274,7 @@ module.exports = (app, db) => {
 		var city = req.query.city;
 		var limit = parseInt(req.query.limit);
 
-		var sql = "SELECT business.storeName, business.image1, offers.* FROM offers INNER JOIN business ON business.businessId = offers.businessId WHERE business.storeCity = ? AND offers.approve = TRUE ORDER BY offers.createdOn DESC LIMIT ?";
+		var sql = "SELECT business.storeName, business.image1, product.productPrice, offers.* FROM offers INNER JOIN business ON business.businessId = offers.businessId INNER JOIN product ON offers.productId = product.productId WHERE business.storeCity = ? AND offers.approve = TRUE ORDER BY offers.createdOn DESC LIMIT ?";
 		db.query(sql, [city, limit], (err, result) => {
 			if (err) {
 				console.log("OFFER GET CUS : ", err.sqlMessage);

@@ -94,7 +94,6 @@ CREATE TABLE product(
     productName VARCHAR(40) NOT NULL,
     brand VARCHAR(50) NOT NULL,
     productPrice DECIMAL(10,2),
-    gst DECIMAL(10,2),
     productImage1 VARCHAR(255) NOT NULL,
     productImage2 VARCHAR(255),
     productImage3 VARCHAR(255),
@@ -217,7 +216,7 @@ CREATE TABLE reviews(
     businessId INT NOT NULL,
     userId INT NOT NULL,
     rating DECIMAL(2, 1) DEFAULT 0,
-    text VARCHAR(100) NOT NULL, 
+    text VARCHAR(400) NOT NULL, 
     createdOn TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (userId) REFERENCES user(userId) ON DELETE CASCADE,
     FOREIGN KEY (businessId) REFERENCES business(businessId) ON DELETE CASCADE
