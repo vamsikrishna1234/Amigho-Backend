@@ -5,20 +5,40 @@ const nodemailer = require('nodemailer');
 const fs = require('fs');
 const { time } = require('console');
 const { on } = require('process');
+const ROOT_DIR = "./serverData/";
+
 // mailing agent
 const transporter = nodemailer.createTransport({
 	service: 'gmail',
+	host : 'smtp.gmail.com',
+	port : '465',
 	auth: {
-		user: 'atulpatare99@gmail.com',
-		pass: 'somepass'
+		user: 'amigopdtr@gmail.com',
+		pass: 'Amigo123@'
 	}
 });
 
 module.exports = (app, db) => {
 	// all endpoints go here
 	app.get('/', (req, res) => {
-		res.send("It is working");
+		res.send("Its working");
 	})
+
+	// send mail
+	function sendMailUpdate(body){
+		var message = {
+			from: 'amigopdtr@gmail.com', 
+			to: 'meghana.amigo2020@gmail.com',         
+			subject: 'New update on Amigo App', 
+			text: body
+		};
+
+		transporter.sendMail(message, function(err, info) {
+			if (err) {
+				console.log("MAILER STATUS ::" + err);
+			}
+		});
+	}
 
 	//generate a refer code
 	function genReferCode() {
@@ -52,7 +72,7 @@ module.exports = (app, db) => {
 	//delete a file
 	function deleteFile(filePath) {
 		if (filePath !== null) {
-			var path = __dirname + filePath.substring(1);
+			var path = __dirname + + "/serverData/" + filePath.substring(1);
 			if (fs.existsSync(path))
 				fs.unlinkSync(path);
 		}
@@ -121,7 +141,7 @@ module.exports = (app, db) => {
 		var notificationToken = req.body.notificationToken;
 		var referCode = genReferCode();
 
-		console.log("REFER CODE: ::" + refer);
+		console.log("REFER CODE: ::" + doa);
 		var sql = "INSERT INTO user(name, role_id, settings, email, password, phone, address, city, notificationToken, dob, doa, jwtToken, referCode) values(?, 2, null, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 		var selectSql = "SELECT * FROM user WHERE userId = ?";
 
@@ -143,6 +163,7 @@ module.exports = (app, db) => {
 								res.status(500).json({ message: selectErr.sqlMessage });
 							} else {
 								res.status(200).json(selectResult[0]);
+								sendMailUpdate("New USER added to Amigo.");
 							}
 						})
 
@@ -150,7 +171,6 @@ module.exports = (app, db) => {
 						var referInsert = "INSERT INTO refers(userId, newUserId) VALUES(?, ?)";
 						var referSql = "SELECT * FROM user WHERE referCode = ? LIMIT 1";
 
-						console.log(newId);
 						if (newId !== undefined && refer != undefined) {
 							console.log("CHECKING.....");
 
@@ -267,13 +287,13 @@ module.exports = (app, db) => {
 
 
 		var timeStamp = Math.floor(Date.now() / 1000);
-		var storeImage1 = "./serverData/business/" + userId + "/" + timeStamp + "/image_1.jpg";
-		var storeImage2 = "./serverData/business/" + userId + "/" + timeStamp + "/image_2.jpg";
-		var storeImage3 = "./serverData/business/" + userId + "/" + timeStamp + "/image_3.jpg";
+		var storeImage1 = "business/" + userId + "/" + timeStamp + "/image_1.jpg";
+		var storeImage2 = "business/" + userId + "/" + timeStamp + "/image_2.jpg";
+		var storeImage3 = "business/" + userId + "/" + timeStamp + "/image_3.jpg";
 
-		saveImageToFile(image1, storeImage1);
-		saveImageToFile(image2, storeImage2);
-		saveImageToFile(image3, storeImage3);
+		saveImageToFile(image1, ROOT_DIR + storeImage1);
+		saveImageToFile(image2, ROOT_DIR + storeImage2);
+		saveImageToFile(image3, ROOT_DIR + storeImage3);
 
 		var sql = "INSERT INTO business(userId, storeName, storeDesc, storeContact, storeAddress, storeCity, image1, image2, image3, lat, lng, categoryId, subCategoryId) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 		db.query(sql, [userId, storeName, storeDesc, storeContact, storeAddress, storeCity, storeImage1, storeImage2, storeImage3, lat, lng, categoryId, subCategoryId], (err, result) => {
@@ -282,6 +302,7 @@ module.exports = (app, db) => {
 				res.sendStatus(500);
 			} else {
 				res.status(200).json("Done");
+				sendMailUpdate("New BUSINESS added to Amigo, verify it!");
 			}
 		})
 	})
@@ -505,20 +526,20 @@ module.exports = (app, db) => {
 		var timestamp = Math.floor(Date.now() / 1000);
 
 		if (postImage1 !== undefined) {
-			finalPostImage1 = "./serverData/posts/" + userId + "/" + timestamp + "/image_1.jpg";
-			saveImageToFile(postImage1, finalPostImage1);
+			finalPostImage1 = "posts/" + userId + "/" + timestamp + "/image_1.jpg";
+			saveImageToFile(postImage1, ROOT_DIR + finalPostImage1);
 		}
 		if (postImage2 !== undefined) {
-			finalPostImage2 = "./serverData/posts/" + userId + "/" + timestamp + "/image_2.jpg";
-			saveImageToFile(postImage2, finalPostImage2);
+			finalPostImage2 = "posts/" + userId + "/" + timestamp + "/image_2.jpg";
+			saveImageToFile(postImage2, ROOT_DIR + finalPostImage2);
 		}
 		if (postImage3 !== undefined) {
-			finalPostImage3 = "./serverData/posts/" + userId + "/" + timestamp + "/image_3.jpg";
-			saveImageToFile(postImage3, finalPostImage3);
+			finalPostImage3 = "posts/" + userId + "/" + timestamp + "/image_3.jpg";
+			saveImageToFile(postImage3, ROOT_DIR + finalPostImage3);
 		}
 		if (postImage4 !== undefined) {
-			finalPostImage4 = "./serverData/posts/" + userId + "/" + timestamp + "/image_4.jpg";
-			saveImageToFile(postImage4, finalPostImage4);
+			finalPostImage4 = "posts/" + userId + "/" + timestamp + "/image_4.jpg";
+			saveImageToFile(postImage4, ROOT_DIR + finalPostImage4);
 		}
 
 		var sql = "INSERT INTO post(userId, postDesc, postImage1, postImage2, postImage3, postImage4, postVideo) VALUES(?, ?, ?, ?, ?, ?, ?)";
@@ -532,6 +553,8 @@ module.exports = (app, db) => {
 					success: true,
 					message: "Done"
 				})
+
+				sendMailUpdate("New POST added to Amigo, verify it!");
 			}
 		})
 	})
@@ -550,15 +573,15 @@ module.exports = (app, db) => {
 		var offerVideo = req.body.offerVideo;
 
 		var timestamp = Math.floor(Date.now() / 1000);
-		var finalOfferImage1 = "./serverData/offer/" + businessId + "/" + timestamp + "/image_1.jpg";
-		var finalOfferImage2 = "./serverData/offer/" + businessId + "/" + timestamp + "/image_2.jpg";
-		var finalOfferImage3 = "./serverData/offer/" + businessId + "/" + timestamp + "/image_3.jpg";
-		var finalOfferImage4 = "./serverData/offer/" + businessId + "/" + timestamp + "/image_4.jpg";
+		var finalOfferImage1 = "offer/" + businessId + "/" + timestamp + "/image_1.jpg";
+		var finalOfferImage2 = "offer/" + businessId + "/" + timestamp + "/image_2.jpg";
+		var finalOfferImage3 = "offer/" + businessId + "/" + timestamp + "/image_3.jpg";
+		var finalOfferImage4 = "offer/" + businessId + "/" + timestamp + "/image_4.jpg";
 
-		saveImageToFile(offerImage1, finalOfferImage1);
-		saveImageToFile(offerImage2, finalOfferImage2);
-		saveImageToFile(offerImage3, finalOfferImage3);
-		saveImageToFile(offerImage4, finalOfferImage4);
+		saveImageToFile(offerImage1, ROOT_DIR + finalOfferImage1);
+		saveImageToFile(offerImage2, ROOT_DIR + finalOfferImage2);
+		saveImageToFile(offerImage3, ROOT_DIR + finalOfferImage3);
+		saveImageToFile(offerImage4, ROOT_DIR + finalOfferImage4);
 
 		var sql = "INSERT INTO offers(businessId, productId, offerName, offerDesc, offerPrice, offerImage1, offerImage2, offerImage3, offerImage4, offerVideo) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
@@ -572,6 +595,9 @@ module.exports = (app, db) => {
 					success: true,
 					message: "Done"
 				})
+
+
+				sendMailUpdate("New OFFER added to Amigo, verify it!");
 			}
 		})
 	})
@@ -588,15 +614,15 @@ module.exports = (app, db) => {
 		var adVideo = req.body.adVideo;
 
 		var timestamp = Math.floor(Date.now() / 1000);
-		var finalAdImage1 = "./serverData/ad/" + businessId + "/" + timestamp + "/image_1.jpg";
-		var finalAdImage2 = "./serverData/ad/" + businessId + "/" + timestamp + "/image_2.jpg";
-		var finalAdImage3 = "./serverData/ad/" + businessId + "/" + timestamp + "/image_3.jpg";
-		var finalAdImage4 = "./serverData/ad/" + businessId + "/" + timestamp + "/image_4.jpg";
+		var finalAdImage1 = "ad/" + businessId + "/" + timestamp + "/image_1.jpg";
+		var finalAdImage2 = "ad/" + businessId + "/" + timestamp + "/image_2.jpg";
+		var finalAdImage3 = "ad/" + businessId + "/" + timestamp + "/image_3.jpg";
+		var finalAdImage4 = "ad/" + businessId + "/" + timestamp + "/image_4.jpg";
 
-		saveImageToFile(adImage1, finalAdImage1);
-		saveImageToFile(adImage2, finalAdImage2);
-		saveImageToFile(adImage3, finalAdImage3);
-		saveImageToFile(adImage4, finalAdImage4);
+		saveImageToFile(adImage1, ROOT_DIR + finalAdImage1);
+		saveImageToFile(adImage2, ROOT_DIR + finalAdImage2);
+		saveImageToFile(adImage3, ROOT_DIR + finalAdImage3);
+		saveImageToFile(adImage4, ROOT_DIR + finalAdImage4);
 
 		var sql = "INSERT INTO ads(businessId, adName, adDesc, adImage1, adImage2, adImage3, adImage4, adVideo) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
 
@@ -609,6 +635,9 @@ module.exports = (app, db) => {
 					success: true,
 					message: "Done"
 				})
+
+
+				sendMailUpdate("New AD added to Amigo, verify it!");
 			}
 		})
 
@@ -629,15 +658,15 @@ module.exports = (app, db) => {
 		var servicePrice = req.body.servicePrice;
 
 		var timestamp = Math.floor(Date.now() / 1000);
-		var finalServiceImage1 = "./serverData/service/" + businessId + "/" + timestamp + "/image_1.jpg";
-		var finalServiceImage2 = "./serverData/service/" + businessId + "/" + timestamp + "/image_2.jpg";
-		var finalServiceImage3 = "./serverData/service/" + businessId + "/" + timestamp + "/image_3.jpg";
-		var finalServiceImage4 = "./serverData/service/" + businessId + "/" + timestamp + "/image_4.jpg";
+		var finalServiceImage1 = "service/" + businessId + "/" + timestamp + "/image_1.jpg";
+		var finalServiceImage2 = "service/" + businessId + "/" + timestamp + "/image_2.jpg";
+		var finalServiceImage3 = "service/" + businessId + "/" + timestamp + "/image_3.jpg";
+		var finalServiceImage4 = "service/" + businessId + "/" + timestamp + "/image_4.jpg";
 
-		saveImageToFile(serviceImage1, finalServiceImage1);
-		saveImageToFile(serviceImage2, finalServiceImage2);
-		saveImageToFile(serviceImage3, finalServiceImage3);
-		saveImageToFile(serviceImage4, finalServiceImage4);
+		saveImageToFile(serviceImage1, ROOT_DIR + finalServiceImage1);
+		saveImageToFile(serviceImage2, ROOT_DIR + finalServiceImage2);
+		saveImageToFile(serviceImage3, ROOT_DIR + finalServiceImage3);
+		saveImageToFile(serviceImage4, ROOT_DIR + finalServiceImage4);
 
 		var sql = "INSERT INTO services(businessId, categoryId, subCategoryId, serviceName, serviceDesc, serviceImage1, serviceImage2, serviceImage3, serviceImage4, serviceVideo, servicePrice) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
@@ -650,6 +679,8 @@ module.exports = (app, db) => {
 					success: true,
 					message: "Done"
 				})
+
+				sendMailUpdate("New SERVICE added to Amigo, verify it!");
 			}
 		})
 	})
@@ -673,15 +704,15 @@ module.exports = (app, db) => {
 		var brand = req.body.productBrand;
 
 		var timestamp = Math.floor(Date.now() / 1000);
-		var finalProductImage1 = "./serverData/product/" + businessId + "/" + timestamp + "/image_1.jpg";
-		var finalProductImage2 = "./serverData/product/" + businessId + "/" + timestamp + "/image_2.jpg";
-		var finalProductImage3 = "./serverData/product/" + businessId + "/" + timestamp + "/image_3.jpg";
-		var finalProductImage4 = "./serverData/product/" + businessId + "/" + timestamp + "/image_4.jpg";
+		var finalProductImage1 = "product/" + businessId + "/" + timestamp + "/image_1.jpg";
+		var finalProductImage2 = "product/" + businessId + "/" + timestamp + "/image_2.jpg";
+		var finalProductImage3 = "product/" + businessId + "/" + timestamp + "/image_3.jpg";
+		var finalProductImage4 = "product/" + businessId + "/" + timestamp + "/image_4.jpg";
 
-		saveImageToFile(productImage1, finalProductImage1);
-		saveImageToFile(productImage2, finalProductImage2);
-		saveImageToFile(productImage3, finalProductImage3);
-		saveImageToFile(productImage4, finalProductImage4);
+		saveImageToFile(productImage1, ROOT_DIR + finalProductImage1);
+		saveImageToFile(productImage2, ROOT_DIR + finalProductImage2);
+		saveImageToFile(productImage3, ROOT_DIR + finalProductImage3);
+		saveImageToFile(productImage4, ROOT_DIR + finalProductImage4);
 
 		var sql = "INSERT INTO product(businessId, categoryId, subCategoryId, subSubCategoryId, productName, productPrice, brand, productImage1, productImage2, productImage3, productImage4, productVideo, productDesc, stock) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
@@ -694,6 +725,8 @@ module.exports = (app, db) => {
 					success: true,
 					message: "Done"
 				})
+
+				sendMailUpdate("New PRODUCT added to Amigo, verify it!");
 			}
 		})
 
@@ -703,13 +736,13 @@ module.exports = (app, db) => {
 		var profileImage = req.body.profileImage;
 		var userId = req.body.userId;
 
-		var path = "./serverData/user/image_" + userId + ".jpg";
+		var path = "user/image_" + userId + ".jpg";
 
 		fs.mkdir(path.split("/image_")[0], { recursive: true }, (err) => {
 			if (err) {
 				console.log("DIR CREATION ERROR:", err);
 			} else {
-				fs.writeFile(path, profileImage, 'base64', function (err) {
+				fs.writeFile(ROOT_DIR + path, profileImage, 'base64', function (err) {
 					if (err) { console.log("ERROR" + err); }
 				});
 				res.status(500).json({
@@ -721,7 +754,7 @@ module.exports = (app, db) => {
 	})
 
 	app.get('/getImage', (req, res) => {
-		var path = __dirname + req.query.path.substring(1);
+		var path = __dirname + "/serverData/" + req.query.path;
 		if (fs.existsSync(path)) {
 			res.sendFile(path, (err) => {
 				if (err) {
@@ -1097,6 +1130,9 @@ module.exports = (app, db) => {
 					success: true,
 					message: "DONE"
 				})
+
+
+				sendMailUpdate("New VENDOR PAYMENT has arrived to Amigo!");
 			}
 		})
 	})
@@ -1117,6 +1153,9 @@ module.exports = (app, db) => {
 					success: true,
 					message: "Done"
 				})
+
+
+				sendMailUpdate("New FEEDBACK arrived to Amigo!");
 			}
 		})
 	})
@@ -1220,9 +1259,9 @@ module.exports = (app, db) => {
 		var sql = "INSERT INTO contestAnswers(userId, contestId, answerType, answerText, answerImage, answerVideo) VALUES(?, ?, ?, ?, ?, ?)";
 
 		var timestamp = Math.floor(Date.now() / 1000);
-		var finalAnswerImage = "./serverData/contestAnswers/" + contestId + "/" + timestamp + "/image_1.jpg";
+		var finalAnswerImage = "contestAnswers/" + contestId + "/" + timestamp + "/image_1.jpg";
 
-		saveImageToFile(answerImage, finalAnswerImage);
+		saveImageToFile(answerImage, ROOT_DIR + finalAnswerImage);
 
 		db.query(sql, [userId, contestId, answerType, answerText, finalAnswerImage, answerVideo], (err, result) => {
 			if (err) {
@@ -1232,6 +1271,8 @@ module.exports = (app, db) => {
 					success: true,
 					message: "DONE"
 				})
+
+				sendMailUpdate("New CONTEST ANSWER added to Amigo, verify it!");
 			}
 		})
 	})
@@ -1492,9 +1533,9 @@ module.exports = (app, db) => {
 		var sql = "INSERT INTO soldProduct(businessId, productId, stock, productCode, image) VALUES(?, ?, ?, ?, ?)";
 
 		var timestamp = Math.floor(Date.now() / 1000);
-		var finalImage = "./serverData/sell/" + businessId + "/" + productId + "/" + timestamp + "/image_1.jpg";
+		var finalImage = "sell/" + businessId + "/" + productId + "/" + timestamp + "/image_1.jpg";
 
-		saveImageToFile(image, finalImage);
+		saveImageToFile(image, ROOT_DIR + finalImage);
 
 		db.query(sql, [businessId, productId, stock, productCode, finalImage], (err, result) => {
 			if (err) {
